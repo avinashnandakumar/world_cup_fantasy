@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0.0",
+  "mode": "simulation",
+  "matches": [
+    { "matchId": "match-001", "stage": "GROUP", "group": "A", "kickoffUtc": "2026-06-12T19:00:00Z", "status": "final", "homeTeamId": "team-atlas", "awayTeamId": "team-borealia", "homeGoals": 2, "awayGoals": 1, "winnerTeamId": "team-atlas", "decidedBy": "regulation", "apiProvider": "simulation", "apiMatchId": "sim-match-001", "manualOverride": false, "lastSyncedAt": "2026-06-07T18:00:00Z" },
+    { "matchId": "match-002", "stage": "GROUP", "group": "A", "kickoffUtc": "2026-06-13T19:00:00Z", "status": "final", "homeTeamId": "team-cyrenia", "awayTeamId": "team-deltora", "homeGoals": 0, "awayGoals": 0, "winnerTeamId": null, "decidedBy": "regulation", "apiProvider": "simulation", "apiMatchId": "sim-match-002", "manualOverride": false, "lastSyncedAt": "2026-06-07T18:00:00Z" },
+    { "matchId": "match-003", "stage": "GROUP", "group": "B", "kickoffUtc": "2026-06-14T19:00:00Z", "status": "final", "homeTeamId": "team-eldoria", "awayTeamId": "team-freedonia", "homeGoals": 3, "awayGoals": 3, "winnerTeamId": null, "decidedBy": "regulation", "apiProvider": "simulation", "apiMatchId": "sim-match-003", "manualOverride": false, "lastSyncedAt": "2026-06-07T18:00:00Z" },
+    { "matchId": "match-004", "stage": "GROUP", "group": "B", "kickoffUtc": "2026-06-15T19:00:00Z", "status": "final", "homeTeamId": "team-galdor", "awayTeamId": "team-hibernia", "homeGoals": 1, "awayGoals": 0, "winnerTeamId": "team-galdor", "decidedBy": "regulation", "apiProvider": "simulation", "apiMatchId": "sim-match-004", "manualOverride": false, "lastSyncedAt": "2026-06-07T18:00:00Z" },
+    { "matchId": "match-005", "stage": "R32", "group": null, "kickoffUtc": "2026-07-02T19:00:00Z", "status": "final", "homeTeamId": "team-atlas", "awayTeamId": "team-hibernia", "homeGoals": 1, "awayGoals": 1, "winnerTeamId": "team-atlas", "decidedBy": "penalties", "apiProvider": "simulation", "apiMatchId": "sim-match-005", "manualOverride": false, "lastSyncedAt": "2026-06-07T18:00:00Z" },
+    { "matchId": "match-006", "stage": "R16", "group": null, "kickoffUtc": "2026-07-06T19:00:00Z", "status": "final", "homeTeamId": "team-atlas", "awayTeamId": "team-eldoria", "homeGoals": 2, "awayGoals": 0, "winnerTeamId": "team-atlas", "decidedBy": "extra_time", "apiProvider": "simulation", "apiMatchId": "sim-match-006", "manualOverride": false, "lastSyncedAt": "2026-06-07T18:00:00Z" },
+    { "matchId": "match-007", "stage": "QF", "group": null, "kickoffUtc": "2026-07-10T19:00:00Z", "status": "final", "homeTeamId": "team-atlas", "awayTeamId": "team-ionia", "homeGoals": 0, "awayGoals": 1, "winnerTeamId": "team-ionia", "decidedBy": "regulation", "apiProvider": "simulation", "apiMatchId": "sim-match-007", "manualOverride": false, "lastSyncedAt": "2026-06-07T18:00:00Z" },
+    { "matchId": "match-008", "stage": "FINAL", "group": null, "kickoffUtc": "2026-07-19T19:00:00Z", "status": "final", "homeTeamId": "team-ionia", "awayTeamId": "team-galdor", "homeGoals": 2, "awayGoals": 1, "winnerTeamId": "team-ionia", "decidedBy": "regulation", "apiProvider": "simulation", "apiMatchId": "sim-match-008", "manualOverride": false, "lastSyncedAt": "2026-06-07T18:00:00Z" }
+  ],
+  "edgeCasesCovered": [
+    "2-1 group win",
+    "0-0 group draw with both clean sheets",
+    "3-3 high-scoring group draw",
+    "red card deduction",
+    "1-0 group win with clean sheet",
+    "knockout match decided by penalties with shootout goals excluded",
+    "extra-time knockout win",
+    "champion bonus"
+  ]
+}
+

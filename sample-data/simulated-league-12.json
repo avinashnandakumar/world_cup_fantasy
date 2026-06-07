@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "mode": "simulation",
+  "league": {
+    "leagueId": "sim-12-manager",
+    "name": "Simulated 12-Manager League",
+    "format": "12_MANAGER",
+    "countriesPerManager": 4
+  },
+  "managers": [
+    { "managerId": "mgr-alpha", "displayName": "Alpha XI", "shortName": "Alpha", "colorToken": "blue", "draftSlot": 1, "isActive": true },
+    { "managerId": "mgr-bravo", "displayName": "Bravo FC", "shortName": "Bravo", "colorToken": "red", "draftSlot": 2, "isActive": true },
+    { "managerId": "mgr-charlie", "displayName": "Charlie Town", "shortName": "Charlie", "colorToken": "gold", "draftSlot": 3, "isActive": true },
+    { "managerId": "mgr-delta", "displayName": "Delta United", "shortName": "Delta", "colorToken": "green", "draftSlot": 4, "isActive": true },
+    { "managerId": "mgr-echo", "displayName": "Echo Athletic", "shortName": "Echo", "colorToken": "purple", "draftSlot": 5, "isActive": true },
+    { "managerId": "mgr-foxtrot", "displayName": "Foxtrot City", "shortName": "Foxtrot", "colorToken": "silver", "draftSlot": 6, "isActive": true },
+    { "managerId": "mgr-golf", "displayName": "Golf Wanderers", "shortName": "Golf", "colorToken": "orange", "draftSlot": 7, "isActive": true },
+    { "managerId": "mgr-hotel", "displayName": "Hotel Rovers", "shortName": "Hotel", "colorToken": "black", "draftSlot": 8, "isActive": true },
+    { "managerId": "mgr-india", "displayName": "India Sporting", "shortName": "India", "colorToken": "teal", "draftSlot": 9, "isActive": true },
+    { "managerId": "mgr-juliet", "displayName": "Juliet SC", "shortName": "Juliet", "colorToken": "pink", "draftSlot": 10, "isActive": true },
+    { "managerId": "mgr-kilo", "displayName": "Kilo County", "shortName": "Kilo", "colorToken": "lime", "draftSlot": 11, "isActive": true },
+    { "managerId": "mgr-lima", "displayName": "Lima Union", "shortName": "Lima", "colorToken": "navy", "draftSlot": 12, "isActive": true }
+  ],
+  "rosters": [
+    { "rosterId": "rost-12-001", "leagueFormat": "12_MANAGER", "managerId": "mgr-alpha", "teamId": "team-atlas", "draftRound": 1, "draftPick": 1, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-002", "leagueFormat": "12_MANAGER", "managerId": "mgr-bravo", "teamId": "team-borealia", "draftRound": 1, "draftPick": 2, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-003", "leagueFormat": "12_MANAGER", "managerId": "mgr-charlie", "teamId": "team-cyrenia", "draftRound": 1, "draftPick": 3, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-004", "leagueFormat": "12_MANAGER", "managerId": "mgr-delta", "teamId": "team-deltora", "draftRound": 1, "draftPick": 4, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-005", "leagueFormat": "12_MANAGER", "managerId": "mgr-echo", "teamId": "team-eldoria", "draftRound": 1, "draftPick": 5, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-006", "leagueFormat": "12_MANAGER", "managerId": "mgr-foxtrot", "teamId": "team-freedonia", "draftRound": 1, "draftPick": 6, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-007", "leagueFormat": "12_MANAGER", "managerId": "mgr-golf", "teamId": "team-galdor", "draftRound": 1, "draftPick": 7, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-008", "leagueFormat": "12_MANAGER", "managerId": "mgr-hotel", "teamId": "team-hibernia", "draftRound": 1, "draftPick": 8, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-009", "leagueFormat": "12_MANAGER", "managerId": "mgr-india", "teamId": "team-ionia", "draftRound": 1, "draftPick": 9, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-010", "leagueFormat": "12_MANAGER", "managerId": "mgr-juliet", "teamId": "team-jutland", "draftRound": 1, "draftPick": 10, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-011", "leagueFormat": "12_MANAGER", "managerId": "mgr-kilo", "teamId": "team-korona", "draftRound": 1, "draftPick": 11, "acquisitionType": "draft" },
+    { "rosterId": "rost-12-012", "leagueFormat": "12_MANAGER", "managerId": "mgr-lima", "teamId": "team-lusitania", "draftRound": 1, "draftPick": 12, "acquisitionType": "draft" }
+  ],
+  "fixtureExpansionNote": "For full 12-manager testing, assign all 48 teams by continuing the same snake pattern from simulated-league-8.json."
+}
+

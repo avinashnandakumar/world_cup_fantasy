@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 520" role="img" aria-labelledby="title desc">
+  <title id="title">Abstract tournament trophy shape</title>
+  <desc id="desc">A non-official abstract trophy-like silhouette for tournament UI moments.</desc>
+  <defs>
+    <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#fff0a3"/>
+      <stop offset=".48" stop-color="#f5b63f"/>
+      <stop offset="1" stop-color="#d45d2c"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#gold)" d="M210 32c70 0 128 53 128 119 0 48-27 88-70 107 8 31 26 65 61 102 18 19 6 51-20 51H101c-26 0-38-31-21-50 35-39 55-74 64-105-41-20-66-59-66-105C78 85 138 32 210 32Z"/>
+  <path fill="#fff8d6" opacity=".52" d="M204 76c39 4 72 32 82 70 8 31-3 63-27 82 7-40-12-84-59-113-25-15-52-20-79-17 22-17 50-25 83-22Z"/>
+  <path fill="#10251d" opacity=".28" d="M120 410h180l21 72H99l21-72Z"/>
+  <path fill="none" stroke="#fff8d6" stroke-width="10" stroke-linecap="round" opacity=".6" d="M109 159c-50 12-74 42-72 89 2 38 29 65 72 70M311 159c50 12 74 42 72 89-2 38-29 65-72 70"/>
+</svg>
+

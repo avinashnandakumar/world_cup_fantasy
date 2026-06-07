@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "mode": "simulation",
+  "generatedAt": "2026-06-07T18:00:00Z",
+  "dataHealth": {
+    "status": "fresh",
+    "lastSuccessfulSyncAt": "2026-06-07T17:59:40Z",
+    "message": "Simulation snapshot generated from sample-data fixtures."
+  },
+  "data": {
+    "league": {
+      "leagueId": "sim-8-manager",
+      "name": "Simulated 8-Manager League",
+      "format": "8_MANAGER",
+      "currentPhase": "FINAL_COMPLETE"
+    },
+    "rulesFile": "sample-data/rules.json",
+    "teamsFile": "sample-data/simulated-teams-48.json",
+    "leagueFile": "sample-data/simulated-league-8.json",
+    "matchesFile": "sample-data/simulated-matches.json",
+    "ledgerFile": "sample-data/simulated-scoring-ledger-8.json",
+    "standingsFile": "sample-data/simulated-standings-8.json",
+    "standings": [
+      { "rank": 1, "managerId": "mgr-black-arrows", "displayName": "Black Arrows", "totalPoints": 7.75, "championOwned": true },
+      { "rank": 2, "managerId": "mgr-blue-comets", "displayName": "Blue Comets", "totalPoints": 6.75, "championOwned": false },
+      { "rank": 3, "managerId": "mgr-orange-crush", "displayName": "Orange Crush", "totalPoints": 3.5, "championOwned": false },
+      { "rank": 4, "managerId": "mgr-golden-boots", "displayName": "Golden Boots", "totalPoints": 1.5, "championOwned": false },
+      { "rank": 5, "managerId": "mgr-silver-strikers", "displayName": "Silver Strikers", "totalPoints": 1.25, "championOwned": false },
+      { "rank": 6, "managerId": "mgr-green-waves", "displayName": "Green Waves", "totalPoints": 1, "championOwned": false },
+      { "rank": 7, "managerId": "mgr-purple-reign", "displayName": "Purple Reign", "totalPoints": 0.25, "championOwned": false },
+      { "rank": 8, "managerId": "mgr-red-rockets", "displayName": "Red Rockets", "totalPoints": -1, "championOwned": false }
+    ],
+    "samplePanels": {
+      "League Pulse Header": "Show FINAL_COMPLETE, fresh data, and Ionia champion.",
+      "Championship Race Board": "Black Arrows leads with 7.75 points; Blue Comets trails by 1.",
+      "Live Match Impact Rail": "Use matches with status live during frontend development, then final sample matches for audit testing.",
+      "Scoring Ledger Drawer": "Read full rows from sample-data/simulated-scoring-ledger-8.json."
+    }
+  }
+}

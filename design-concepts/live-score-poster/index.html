@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live Score Poster | World Cup Fantasy Concept</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="poster-hero" id="top">
+        <div class="field-glow" aria-hidden="true"></div>
+        <nav class="topbar" aria-label="Concept navigation">
+          <a class="brand-mark" href="#top" aria-label="Live Score Poster home">
+            <span class="brand-orbit"></span>
+            <span>
+              <strong>Cup Race</strong>
+              <small>Fantasy Matchday</small>
+            </span>
+          </a>
+          <div class="nav-pills" aria-label="Jump links">
+            <a href="#race">Race</a>
+            <a href="#live">Live</a>
+            <a href="#rosters">Rosters</a>
+          </div>
+        </nav>
+
+        <section class="hero-grid" aria-labelledby="hero-title">
+          <div class="poster-copy">
+            <p class="eyebrow"><span class="live-dot"></span> Live poster board</p>
+            <h1 id="hero-title">
+              <span id="typed-headline">The table is moving.</span>
+              <span class="typing-caret" aria-hidden="true"></span>
+            </h1>
+            <p class="hero-summary" id="hero-summary">
+              A cleaner matchday view for the league race, live fantasy swings, and the countries still carrying each roster.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-action" href="#race">See the race</a>
+              <button class="ghost-action" type="button" id="open-ledger">Open audit</button>
+            </div>
+          </div>
+
+          <aside class="leader-poster" aria-label="Current leader">
+            <div class="leader-ribbon">Current leader</div>
+            <div class="leader-rank" id="leader-rank">#1</div>
+            <div class="leader-name" id="leader-name">Loading</div>
+            <div class="leader-score"><span id="leader-score">0</span><small>pts</small></div>
+            <div class="leader-meta" id="leader-meta">Simulation loading...</div>
+          </aside>
+        </section>
+
+        <div class="flag-river" id="flag-river" aria-label="Featured countries"></div>
+      </header>
+
+      <main>
+        <section class="score-bug" id="live" aria-labelledby="live-title">
+          <div class="bug-meta">
+            <p class="eyebrow"><span class="live-dot"></span> Broadcast strip</p>
+            <h2 id="live-title">Live match impact</h2>
+          </div>
+          <div class="bug-track" id="bug-track"></div>
+        </section>
+
+        <section class="race-section" id="race" aria-labelledby="race-title">
+          <div class="section-heading">
+            <p class="eyebrow">Championship race</p>
+            <h2 id="race-title">Standings as a poster, not a spreadsheet</h2>
+          </div>
+          <div class="race-board" id="race-board"></div>
+        </section>
+
+        <section class="roster-section" id="rosters" aria-labelledby="rosters-title">
+          <div class="section-heading">
+            <p class="eyebrow">Roster fate tracker</p>
+            <h2 id="rosters-title">Every manager, one clean strip</h2>
+          </div>
+          <div class="roster-stack" id="roster-stack"></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="ledger-drawer" id="ledger-drawer" aria-labelledby="ledger-title">
+      <form method="dialog">
+        <button class="close-button" aria-label="Close audit drawer">×</button>
+      </form>
+      <p class="eyebrow">Hidden audit</p>
+      <h2 id="ledger-title">Scoring ledger preview</h2>
+      <p class="drawer-copy">Detailed math stays available without crowding the matchday view.</p>
+      <div class="ledger-list" id="ledger-list"></div>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

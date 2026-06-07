@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "1.0.0",
+  "mode": "simulation",
+  "generatedAt": "2026-06-07T18:00:00Z",
+  "rules": [
+    {
+      "category": "win",
+      "label": "Win",
+      "scope": "All matches",
+      "points": 1
+    },
+    {
+      "category": "group_draw",
+      "label": "Draw",
+      "scope": "Group stage only",
+      "points": 0.5
+    },
+    {
+      "category": "goal_scored",
+      "label": "Goal scored",
+      "scope": "All matches",
+      "points": 0.5
+    },
+    {
+      "category": "goal_allowed",
+      "label": "Goal allowed",
+      "scope": "All matches",
+      "points": -0.25
+    },
+    {
+      "category": "clean_sheet",
+      "label": "Clean sheet",
+      "scope": "All matches",
+      "points": 0.5
+    },
+    {
+      "category": "red_card",
+      "label": "Red card",
+      "scope": "All matches",
+      "points": -1
+    },
+    {
+      "category": "qualify_knockouts",
+      "label": "Qualify for knockouts",
+      "scope": "Group stage bonus",
+      "points": 0.5
+    },
+    {
+      "category": "win_group",
+      "label": "Win group",
+      "scope": "Group stage bonus",
+      "points": 1
+    },
+    {
+      "category": "champion",
+      "label": "Win World Cup",
+      "scope": "Tournament bonus",
+      "points": 2
+    }
+  ],
+  "notes": [
+    "Draw points apply in group-stage matches only.",
+    "Penalty shootout goals do not count as goals scored.",
+    "There are no round-by-round knockout advancement bonuses."
+  ]
+}
+

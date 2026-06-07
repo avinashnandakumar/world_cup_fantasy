@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+  <title id="title">Self-created soccer ball glyph</title>
+  <desc id="desc">A simple colorful soccer ball mark for UI exploration.</desc>
+  <defs>
+    <linearGradient id="bg" x1="32" y1="28" x2="208" y2="212" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f8ff65"/>
+      <stop offset="0.45" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#ff4f7b"/>
+    </linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="106" fill="url(#bg)"/>
+  <circle cx="120" cy="120" r="88" fill="#fffdf4"/>
+  <path fill="#141414" d="m120 70 34 25-13 40h-42L86 95z"/>
+  <path fill="none" stroke="#141414" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" d="m86 95-38-7m106 7 38-7M99 135l-24 38m66-38 24 38M120 70V35M75 173l-24 19m114-19 24 19"/>
+  <path fill="none" stroke="#141414" stroke-width="10" stroke-linecap="round" d="M52 88a88 88 0 0 0-6 57m142-57a88 88 0 0 1 6 57"/>
+</svg>

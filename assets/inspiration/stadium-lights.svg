@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">Stadium lights color field</title>
+  <desc id="desc">A colorful stadium light inspired abstract background.</desc>
+  <defs>
+    <linearGradient id="night" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#06111f"/>
+      <stop offset=".55" stop-color="#111827"/>
+      <stop offset="1" stop-color="#071b16"/>
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="720" fill="url(#night)"/>
+  <g filter="url(#blur)" opacity=".85">
+    <ellipse cx="190" cy="90" rx="190" ry="70" fill="#2dd4bf"/>
+    <ellipse cx="950" cy="95" rx="210" ry="76" fill="#60a5fa"/>
+    <ellipse cx="620" cy="695" rx="320" ry="90" fill="#f97316"/>
+    <ellipse cx="1030" cy="590" rx="260" ry="110" fill="#e11d48"/>
+  </g>
+  <g stroke="#ffffff" stroke-opacity=".14" stroke-width="2">
+    <path d="M170 70 420 720M300 80 520 720M930 76 740 720M1060 82 820 720"/>
+    <path d="M0 560c190-52 360-72 600-72s410 20 600 72"/>
+    <path d="M0 606c204-48 382-66 600-66s396 18 600 66"/>
+  </g>
+  <g fill="#ffffff" opacity=".65">
+    <circle cx="122" cy="68" r="5"/><circle cx="152" cy="58" r="5"/><circle cx="182" cy="52" r="5"/><circle cx="212" cy="58" r="5"/><circle cx="242" cy="68" r="5"/>
+    <circle cx="858" cy="66" r="5"/><circle cx="888" cy="56" r="5"/><circle cx="918" cy="50" r="5"/><circle cx="948" cy="56" r="5"/><circle cx="978" cy="66" r="5"/>
+  </g>
+</svg>
+

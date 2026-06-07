@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 220" role="img" aria-labelledby="title desc">
+  <title id="title">Broadcast lower third scoreboard concept</title>
+  <desc id="desc">A clean scoreboard strip with colorful country tabs and live fantasy delta area.</desc>
+  <rect width="960" height="220" rx="36" fill="#0b1220"/>
+  <rect x="28" y="28" width="904" height="164" rx="28" fill="#f9fafb"/>
+  <rect x="52" y="52" width="132" height="116" rx="22" fill="#16a34a"/>
+  <rect x="776" y="52" width="132" height="116" rx="22" fill="#ef4444"/>
+  <rect x="210" y="52" width="180" height="116" rx="22" fill="#111827"/>
+  <rect x="570" y="52" width="180" height="116" rx="22" fill="#111827"/>
+  <text x="300" y="123" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="800" fill="#ffffff">2</text>
+  <text x="660" y="123" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="800" fill="#ffffff">1</text>
+  <text x="480" y="92" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="800" fill="#111827">LIVE 68'</text>
+  <text x="480" y="134" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="900" fill="#111827">+1.25 FANTASY SWING</text>
+  <path d="M88 92h60M88 126h60M812 92h60M812 126h60" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+</svg>

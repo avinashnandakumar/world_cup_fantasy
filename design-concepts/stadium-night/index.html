@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Stadium Night Concept</title>
+    <meta
+      name="description"
+      content="Alternate premium World Cup fantasy dashboard concept with a cinematic race board and quiet audit drawer."
+    >
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to dashboard</a>
+
+    <main id="main" class="stadium-shell">
+      <section class="scoreboard-stage" data-panel="Scoreboard Stage">
+        <div class="ambient-grid" aria-hidden="true"></div>
+
+        <header class="match-current" data-panel="Match Current">
+          <div>
+            <p class="kicker">World Cup Fantasy</p>
+            <h1>Night Match Control</h1>
+          </div>
+          <div class="sync-pill" id="sync-pill">Loading snapshot</div>
+        </header>
+
+        <section class="hero-race" data-panel="Hero Race">
+          <div class="leader-lockup" data-panel="Leader Lockup">
+            <p class="kicker">Current Leader</p>
+            <h2 id="leader-name">Black Arrows</h2>
+            <div class="leader-score">
+              <span id="leader-score">7.75</span>
+              <small>pts</small>
+            </div>
+            <p id="leader-context" class="leader-context">The chase is tight under the lights.</p>
+          </div>
+
+          <div class="race-ladder" data-panel="Race Ladder">
+            <div class="ladder-header">
+              <span>Race Board</span>
+              <button class="ghost-button" id="audit-open" type="button">Audit</button>
+            </div>
+            <ol id="leaderboard-list" class="leaderboard-list"></ol>
+          </div>
+        </section>
+
+        <section class="live-strip" data-panel="Live Strip" aria-label="Match strip">
+          <div class="strip-label">
+            <span>Live Strip</span>
+            <strong id="match-count">0 matches</strong>
+          </div>
+          <div id="match-strip-track" class="match-strip-track"></div>
+        </section>
+      </section>
+
+      <section class="focus-grid">
+        <section class="manager-focus" data-panel="Manager Focus">
+          <div class="section-heading">
+            <p class="kicker">Selected Manager</p>
+            <label class="select-label">
+              <span>Manager</span>
+              <select id="manager-select"></select>
+            </label>
+          </div>
+          <div id="manager-profile" class="manager-profile"></div>
+        </section>
+
+        <section class="roster-radar" data-panel="Roster Radar">
+          <div class="section-heading compact">
+            <p class="kicker">Roster Radar</p>
+            <span id="roster-summary">6 countries</span>
+          </div>
+          <div id="roster-list" class="roster-list"></div>
+        </section>
+
+        <section class="moment-feed" data-panel="Moment Feed">
+          <div class="section-heading compact">
+            <p class="kicker">Point Moments</p>
+            <span>Recent scoring</span>
+          </div>
+          <div id="moment-list" class="moment-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <aside class="audit-drawer" id="audit-drawer" data-panel="Audit Drawer" aria-hidden="true">
+      <div class="drawer-scrim" id="audit-close-scrim"></div>
+      <section class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="audit-title">
+        <div class="drawer-head">
+          <div>
+            <p class="kicker">Scoring Audit</p>
+            <h2 id="audit-title">Ledger Drawer</h2>
+          </div>
+          <button class="close-button" id="audit-close" type="button" aria-label="Close audit drawer">×</button>
+        </div>
+        <input id="audit-search" class="audit-search" type="search" placeholder="Search manager, team, category...">
+        <div id="audit-list" class="audit-list"></div>
+      </section>
+    </aside>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

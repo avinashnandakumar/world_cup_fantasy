@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flow Score Concept</title>
+    <meta
+      name="description"
+      content="A cleaner, fluid World Cup fantasy dashboard concept focused on race, live impact, and manager roster clarity."
+    >
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="flow-shell">
+      <section class="scorestage" aria-labelledby="league-title">
+        <div class="aurora-field" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+
+        <header class="topline" data-section="Matchday Masthead">
+          <div>
+            <p class="kicker">World Cup Fantasy</p>
+            <h1 id="league-title">The Race Is Live</h1>
+          </div>
+          <button class="sync-chip" id="sync-chip" type="button" aria-label="Refresh prototype data">
+            <span class="sync-dot"></span>
+            <span id="sync-label">Simulation ready</span>
+          </button>
+        </header>
+
+        <section class="race-hero" data-section="Championship Flow">
+          <div class="leader-lockup">
+            <p class="kicker">Current Leader</p>
+            <h2 id="leader-name">Black Arrows</h2>
+            <div class="leader-score">
+              <span id="leader-score">7.75</span>
+              <small>pts</small>
+            </div>
+          </div>
+          <div class="race-orbit" aria-label="Top three race visualization">
+            <div class="orb leader-orb">
+              <span id="orb-rank-1">1</span>
+            </div>
+            <div class="orb chase-orb">
+              <span id="orb-rank-2">2</span>
+            </div>
+            <div class="orb pulse-orb">
+              <span id="orb-rank-3">3</span>
+            </div>
+          </div>
+          <div class="gap-card">
+            <span>Lead</span>
+            <strong id="leader-gap">+1.00</strong>
+            <small id="gap-copy">one goal swing can change the mood</small>
+          </div>
+        </section>
+      </section>
+
+      <nav class="manager-ribbon" id="manager-ribbon" data-section="Manager Ribbon" aria-label="Choose manager"></nav>
+
+      <section class="content-flow">
+        <section class="live-strip" data-section="Live Impact Strip" aria-labelledby="live-title">
+          <div class="section-heading">
+            <p class="kicker">Match Impact</p>
+            <h2 id="live-title">Where points moved</h2>
+          </div>
+          <div class="match-carousel" id="match-carousel"></div>
+        </section>
+
+        <section class="manager-story" data-section="Manager Story" aria-labelledby="manager-title">
+          <div class="manager-panel">
+            <div class="manager-intro">
+              <div>
+                <p class="kicker">Selected Manager</p>
+                <h2 id="manager-title">Black Arrows</h2>
+              </div>
+              <div class="manager-total">
+                <span id="manager-total">7.75</span>
+                <small>points</small>
+              </div>
+            </div>
+            <div class="storyline" id="manager-storyline"></div>
+            <div class="roster-flow" id="roster-flow"></div>
+          </div>
+        </section>
+
+        <section class="audit-peek" data-section="Ledger Peek">
+          <details>
+            <summary>
+              <span>
+                <span class="kicker">Audit</span>
+                <strong>Recent point receipts</strong>
+              </span>
+              <span class="summary-action">Open</span>
+            </summary>
+            <div class="receipt-list" id="receipt-list"></div>
+          </details>
+        </section>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

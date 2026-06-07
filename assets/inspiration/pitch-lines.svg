@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Self-created pitch line background</title>
+  <desc id="desc">A stylized soccer pitch background for hero sections and dashboard panels.</desc>
+  <defs>
+    <linearGradient id="grass" x1="0" y1="0" x2="960" y2="540" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0e7a4f"/>
+      <stop offset=".55" stop-color="#0f9f67"/>
+      <stop offset="1" stop-color="#0f4c81"/>
+    </linearGradient>
+    <pattern id="stripes" width="96" height="540" patternUnits="userSpaceOnUse">
+      <rect width="48" height="540" fill="#ffffff" opacity=".06"/>
+    </pattern>
+  </defs>
+  <rect width="960" height="540" fill="url(#grass)"/>
+  <rect width="960" height="540" fill="url(#stripes)"/>
+  <g fill="none" stroke="#f8fff1" stroke-width="8" opacity=".62">
+    <rect x="48" y="48" width="864" height="444" rx="18"/>
+    <path d="M480 48v444"/>
+    <circle cx="480" cy="270" r="76"/>
+    <circle cx="480" cy="270" r="6" fill="#f8fff1"/>
+    <path d="M48 164h120v212H48m864-212H792v212h120"/>
+    <path d="M48 210h54v120H48m864-120h-54v120h54"/>
+    <path d="M168 217a80 80 0 0 1 0 106m624-106a80 80 0 0 0 0 106"/>
+  </g>
+  <path d="M0 420c180-76 286 82 480 0s300 58 480 0v120H0z" fill="#101820" opacity=".22"/>
+</svg>

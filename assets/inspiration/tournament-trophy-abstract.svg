@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 420" role="img" aria-labelledby="title desc">
+  <title id="title">Abstract tournament trophy shape</title>
+  <desc id="desc">A self-created trophy-like shape that does not copy official World Cup marks.</desc>
+  <defs>
+    <linearGradient id="metal" x1="72" y1="40" x2="248" y2="356" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f8ff65"/>
+      <stop offset=".42" stop-color="#facc15"/>
+      <stop offset=".68" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#ff4f7b"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="420" rx="44" fill="#101820"/>
+  <path fill="url(#metal)" d="M160 44c48 0 86 38 86 86 0 38-24 70-58 82 10 38 28 65 54 82 16 10 24 26 21 45H57c-3-19 5-35 21-45 26-17 44-44 54-82-34-12-58-44-58-82 0-48 38-86 86-86Z"/>
+  <path fill="#101820" fill-opacity=".9" d="M160 76c30 0 54 24 54 54s-24 54-54 54-54-24-54-54 24-54 54-54Z"/>
+  <path fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" d="M118 338h84m-110 34h136"/>
+  <path fill="none" stroke="#ffffff" stroke-opacity=".78" stroke-width="8" stroke-linecap="round" d="M104 126c30-24 82-24 112 0M132 156c17 13 39 13 56 0"/>
+</svg>

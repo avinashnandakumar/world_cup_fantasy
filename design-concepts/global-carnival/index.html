@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Global Carnival | World Cup Fantasy Concept</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-one" aria-hidden="true"></div>
+      <div class="ambient ambient-two" aria-hidden="true"></div>
+
+      <header class="top-nav" aria-label="Dashboard navigation">
+        <a class="brand-lockup" href="#hero" aria-label="Global Carnival home">
+          <span class="brand-mark">WC</span>
+          <span>
+            <strong>Global Carnival</strong>
+            <small>Fantasy race dashboard</small>
+          </span>
+        </a>
+        <nav>
+          <a href="#race">Race</a>
+          <a href="#live">Live</a>
+          <a href="#rosters">Rosters</a>
+          <button class="ghost-button" type="button" data-open-audit>Audit</button>
+        </nav>
+      </header>
+
+      <main>
+        <section class="matchday-hero" id="hero" aria-labelledby="hero-title">
+          <div class="flag-ribbon" aria-label="Tournament country ribbon">
+            <span>🇺🇸</span><span>🇲🇽</span><span>🇨🇦</span><span>🇧🇷</span><span>🇯🇵</span><span>🇫🇷</span><span>🇳🇬</span><span>🇦🇷</span>
+          </div>
+
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <p class="eyebrow">Live league pulse</p>
+              <h1 id="hero-title">
+                <span data-typing>Every goal moves the table.</span>
+              </h1>
+              <p class="hero-subcopy">
+                A cleaner matchday view for the fantasy World Cup race: leader, gap, live swing, and roster life in one glance.
+              </p>
+              <div class="hero-actions">
+                <a class="primary-button" href="#race">See the race</a>
+                <button class="secondary-button" type="button" data-open-audit>Open audit</button>
+              </div>
+            </div>
+
+            <aside class="leader-orbit" aria-label="Current leader summary">
+              <div class="leader-card">
+                <span class="leader-kicker">Current leader</span>
+                <div class="leader-name" data-leader-name>Black Arrows</div>
+                <div class="leader-score">
+                  <span data-leader-score>7.75</span>
+                  <small>pts</small>
+                </div>
+                <div class="gap-pill">
+                  <span>Gap</span>
+                  <strong data-gap>+1.00</strong>
+                </div>
+              </div>
+              <div class="swing-bubble">
+                <small>Live swing</small>
+                <strong data-live-swing>+1.5</strong>
+                <span>from goals + clean sheets</span>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="race-section" id="race" aria-labelledby="race-title">
+          <div class="section-heading">
+            <p class="eyebrow">Championship Race Board</p>
+            <h2 id="race-title">One strip. Every manager. No clutter.</h2>
+          </div>
+          <div class="race-strip" data-race-strip></div>
+        </section>
+
+        <section class="live-section" id="live" aria-labelledby="live-title">
+          <div class="section-heading">
+            <p class="eyebrow">Live Match Impact</p>
+            <h2 id="live-title">The match story, translated into fantasy movement.</h2>
+          </div>
+          <div class="live-board">
+            <article class="score-bug">
+              <div class="score-status">
+                <span class="live-dot"></span>
+                <span data-match-status>LIVE 68'</span>
+              </div>
+              <div class="score-line">
+                <span class="team-chip"><b>🇧🇷</b> Brazil</span>
+                <strong>2</strong>
+                <span class="score-dash">-</span>
+                <strong>1</strong>
+                <span class="team-chip">Japan <b>🇯🇵</b></span>
+              </div>
+              <div class="score-impact">
+                <span>Black Arrows +0.5</span>
+                <span>Blue Comets -0.25</span>
+                <span>Clean sheet broken</span>
+              </div>
+            </article>
+
+            <div class="swing-list" data-swing-list></div>
+          </div>
+        </section>
+
+        <section class="roster-section" id="rosters" aria-labelledby="rosters-title">
+          <div class="section-heading">
+            <p class="eyebrow">Roster Flag Stack</p>
+            <h2 id="rosters-title">Flags show who still has tournament life.</h2>
+          </div>
+          <div class="manager-picker" data-manager-picker></div>
+          <div class="roster-stack" data-roster-stack></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="audit-drawer" data-audit-dialog aria-label="Scoring audit detail">
+      <div class="drawer-header">
+        <div>
+          <p class="eyebrow">Hidden Audit Detail</p>
+          <h2>Scoring ledger</h2>
+        </div>
+        <button class="icon-button" type="button" data-close-audit aria-label="Close audit">×</button>
+      </div>
+      <div class="ledger-table" data-ledger-table></div>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

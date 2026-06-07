@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>World Cup Fantasy Dashboard</title>
+    <meta
+      name="description"
+      content="Fantasy World Cup league dashboard for standings, rosters, live match impact, and scoring audit."
+    >
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to dashboard</a>
+
+    <main id="main" class="app-shell">
+      <header class="league-pulse-header" data-panel="League Pulse Header">
+        <div>
+          <p class="eyebrow">World Cup Fantasy</p>
+          <h1 id="league-name">League Dashboard</h1>
+          <p id="league-summary" class="muted">Loading the latest league snapshot...</p>
+        </div>
+        <div class="pulse-actions">
+          <div id="data-health-badge" class="data-health-badge" data-panel="Data Health Badge">
+            Checking data
+          </div>
+          <button id="refresh-button" class="icon-button" type="button" title="Refresh data" aria-label="Refresh data">
+            ↻
+          </button>
+        </div>
+      </header>
+
+      <section class="timeline-strip" data-panel="Tournament Timeline Strip" aria-label="Tournament timeline">
+        <div id="timeline-track" class="timeline-track"></div>
+      </section>
+
+      <section class="dashboard-grid">
+        <section class="championship-race-board panel panel-feature" data-panel="Championship Race Board">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Standings</p>
+              <h2>Championship Race</h2>
+            </div>
+            <span id="leader-gap" class="soft-pill">Live table</span>
+          </div>
+          <div id="standings-list" class="standings-list"></div>
+        </section>
+
+        <aside class="manager-spotlight-panel panel" data-panel="Manager Spotlight Panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Selected Manager</p>
+              <h2>Manager Spotlight</h2>
+            </div>
+            <select id="manager-select" class="manager-select" aria-label="Choose manager"></select>
+          </div>
+          <div id="manager-spotlight"></div>
+        </aside>
+
+        <section class="live-match-impact-rail panel" data-panel="Live Match Impact Rail">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Right Now</p>
+              <h2>Live Match Impact</h2>
+            </div>
+            <span id="live-count" class="soft-pill">0 live</span>
+          </div>
+          <div id="match-rail" class="match-rail"></div>
+        </section>
+
+        <section class="roster-fate-tracker panel" data-panel="Roster Fate Tracker">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Roster Outlook</p>
+              <h2>Fate Tracker</h2>
+            </div>
+          </div>
+          <div id="fate-tracker" class="fate-tracker"></div>
+        </section>
+      </section>
+
+      <section class="country-card-grid panel" data-panel="Country Card Grid">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Draft Board</p>
+            <h2>Country Cards</h2>
+          </div>
+          <div id="country-filter-tabs" class="filter-tabs" role="tablist" aria-label="Country filter"></div>
+        </div>
+        <div id="country-grid" class="country-grid"></div>
+      </section>
+
+      <section class="rules-reference-panel panel" data-panel="Rules Reference Panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Rules</p>
+            <h2>Scoring Reference</h2>
+          </div>
+        </div>
+        <div id="rules-grid" class="rules-grid"></div>
+      </section>
+
+      <section class="scoring-ledger-drawer panel" data-panel="Scoring Ledger Drawer">
+        <details id="ledger-details">
+          <summary>
+            <span>
+              <span class="eyebrow">Audit Trail</span>
+              <strong>Scoring Ledger</strong>
+            </span>
+            <span class="soft-pill">Open details</span>
+          </summary>
+          <div class="ledger-controls">
+            <input id="ledger-search" type="search" placeholder="Search manager, country, match, category..." aria-label="Search scoring ledger">
+          </div>
+          <div class="ledger-table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Manager</th>
+                  <th>Country</th>
+                  <th>Match</th>
+                  <th>Category</th>
+                  <th>Pts</th>
+                  <th>Why</th>
+                </tr>
+              </thead>
+              <tbody id="ledger-body"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

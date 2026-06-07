@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 180" role="img" aria-labelledby="title desc">
+  <title id="title">Broadcast score bug frame</title>
+  <desc id="desc">A scoreboard inspired lower-third frame for match impact UI.</desc>
+  <rect x="16" y="18" width="728" height="144" rx="20" fill="#07111f"/>
+  <rect x="16" y="18" width="728" height="144" rx="20" fill="none" stroke="#ffffff" stroke-opacity=".18"/>
+  <path d="M198 18h126l-28 144H170Z" fill="#16a36a"/>
+  <path d="M534 18h126l-28 144H506Z" fill="#e5484d"/>
+  <rect x="316" y="34" width="128" height="112" rx="16" fill="#fff7d1"/>
+  <text x="74" y="106" fill="#fff" font-family="Arial, sans-serif" font-weight="800" font-size="42">USA</text>
+  <text x="560" y="106" fill="#fff" font-family="Arial, sans-serif" font-weight="800" font-size="42">JPN</text>
+  <text x="344" y="107" fill="#07111f" font-family="Arial, sans-serif" font-weight="900" font-size="48">2-1</text>
+</svg>
+

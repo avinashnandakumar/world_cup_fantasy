@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>World Cup Fantasy Table</title>
+    <meta name="description" content="A simple, visual landing page for a World Cup fantasy league.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main>
+      <section class="matchday-landing" aria-labelledby="page-title">
+        <div class="stadium-wash"></div>
+        <header class="topline">
+          <img src="../../assets/avi_assets/2026-fifa-world-cup-logo.jpg" alt="World Cup 2026 logo" class="brand-mark">
+          <div class="live-chip"><span></span> Simulated live table</div>
+        </header>
+
+        <div class="hero-grid">
+          <section class="hero-copy">
+            <p class="eyebrow">World Cup Fantasy</p>
+            <h1 id="page-title">Live table, zero clutter.</h1>
+            <p class="typing-line" aria-live="polite">
+              <span id="typing-text">Black Arrows lead by 1 point</span>
+            </p>
+            <nav class="jump-row" aria-label="Dashboard sections">
+              <a href="#standings">Standings</a>
+              <a href="#countries">Countries</a>
+              <a href="#matches">Live games</a>
+            </nav>
+          </section>
+
+          <section id="standings" class="table-stage" aria-labelledby="standings-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Priority 6/5</p>
+                <h2 id="standings-title">Live Standings</h2>
+              </div>
+              <span id="last-updated" class="soft-pill">Loading</span>
+            </div>
+            <div class="standings-wrap">
+              <table class="fantasy-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Total</th>
+                    <th>Wins</th>
+                    <th>Goals</th>
+                    <th>Defense</th>
+                    <th>Bonuses</th>
+                    <th>Cards</th>
+                  </tr>
+                </thead>
+                <tbody id="standings-body"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div class="flag-ribbon" id="flag-ribbon" aria-label="Countries in play"></div>
+      </section>
+
+      <section id="countries" class="content-section countries-section" aria-labelledby="countries-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Priority 4/5</p>
+            <h2 id="countries-title">Countries Per Player</h2>
+          </div>
+          <select id="manager-select" aria-label="Choose player"></select>
+        </div>
+        <div id="country-breakdown" class="country-breakdown"></div>
+      </section>
+
+      <section id="matches" class="content-section match-section" aria-labelledby="matches-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Priority 2/5</p>
+            <h2 id="matches-title">Live Games</h2>
+          </div>
+          <span class="soft-pill">Supporting context</span>
+        </div>
+        <div id="match-strip" class="match-strip"></div>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

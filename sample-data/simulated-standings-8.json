@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "1.0.0",
+  "mode": "simulation",
+  "leagueFormat": "8_MANAGER",
+  "generatedAt": "2026-06-07T18:00:00Z",
+  "standings": [
+    { "rank": 1, "previousRank": 2, "managerId": "mgr-black-arrows", "displayName": "Black Arrows", "shortName": "Arrows", "colorToken": "black", "totalPoints": 7.75, "countriesAlive": 1, "countriesEliminated": 5, "countriesQualified": 2, "groupWinners": 1, "championOwned": true, "lastUpdatedAt": "2026-06-07T18:00:00Z" },
+    { "rank": 2, "previousRank": 1, "managerId": "mgr-blue-comets", "displayName": "Blue Comets", "shortName": "Comets", "colorToken": "blue", "totalPoints": 6.75, "countriesAlive": 0, "countriesEliminated": 6, "countriesQualified": 1, "groupWinners": 1, "championOwned": false, "lastUpdatedAt": "2026-06-07T18:00:00Z" },
+    { "rank": 3, "previousRank": 3, "managerId": "mgr-orange-crush", "displayName": "Orange Crush", "shortName": "Crush", "colorToken": "orange", "totalPoints": 3.5, "countriesAlive": 0, "countriesEliminated": 6, "countriesQualified": 1, "groupWinners": 1, "championOwned": false, "lastUpdatedAt": "2026-06-07T18:00:00Z" },
+    { "rank": 4, "previousRank": 4, "managerId": "mgr-golden-boots", "displayName": "Golden Boots", "shortName": "Boots", "colorToken": "gold", "totalPoints": 1.5, "countriesAlive": 1, "countriesEliminated": 5, "countriesQualified": 1, "groupWinners": 0, "championOwned": false, "lastUpdatedAt": "2026-06-07T18:00:00Z" },
+    { "rank": 5, "previousRank": 5, "managerId": "mgr-silver-strikers", "displayName": "Silver Strikers", "shortName": "Strikers", "colorToken": "silver", "totalPoints": 1.25, "countriesAlive": 0, "countriesEliminated": 6, "countriesQualified": 0, "groupWinners": 0, "championOwned": false, "lastUpdatedAt": "2026-06-07T18:00:00Z" },
+    { "rank": 6, "previousRank": 6, "managerId": "mgr-green-waves", "displayName": "Green Waves", "shortName": "Waves", "colorToken": "green", "totalPoints": 1, "countriesAlive": 0, "countriesEliminated": 6, "countriesQualified": 0, "groupWinners": 0, "championOwned": false, "lastUpdatedAt": "2026-06-07T18:00:00Z" },
+    { "rank": 7, "previousRank": 7, "managerId": "mgr-purple-reign", "displayName": "Purple Reign", "shortName": "Reign", "colorToken": "purple", "totalPoints": 0.25, "countriesAlive": 0, "countriesEliminated": 6, "countriesQualified": 1, "groupWinners": 0, "championOwned": false, "lastUpdatedAt": "2026-06-07T18:00:00Z" },
+    { "rank": 8, "previousRank": 8, "managerId": "mgr-red-rockets", "displayName": "Red Rockets", "shortName": "Rockets", "colorToken": "red", "totalPoints": -1, "countriesAlive": 0, "countriesEliminated": 6, "countriesQualified": 0, "groupWinners": 0, "championOwned": false, "lastUpdatedAt": "2026-06-07T18:00:00Z" }
+  ]
+}

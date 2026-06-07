@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-labelledby="title desc">
+  <title id="title">Self-created stadium light burst background</title>
+  <desc id="desc">Abstract stadium light beams for a night-match dashboard mood.</desc>
+  <defs>
+    <radialGradient id="halo" cx="50%" cy="12%" r="70%">
+      <stop offset="0" stop-color="#f8ff65" stop-opacity=".72"/>
+      <stop offset=".24" stop-color="#22d3ee" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#101820" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="960" y2="540" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#101820"/>
+      <stop offset=".48" stop-color="#172554"/>
+      <stop offset="1" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="540" fill="url(#sky)"/>
+  <circle cx="480" cy="46" r="420" fill="url(#halo)"/>
+  <g stroke="#f8ff65" stroke-width="7" stroke-linecap="round">
+    <path d="M88 84h92m-74 22h58m-36-44v88"/>
+    <path d="M780 84h92m-74 22h58m-36-44v88"/>
+  </g>
+  <g fill="#ffffff" opacity=".28">
+    <path d="M134 138 18 540h214z"/>
+    <path d="M826 138 728 540h214z"/>
+    <path d="M480 86 316 540h328z"/>
+  </g>
+  <path d="M0 420c98-34 192-50 282-45 80 5 126 32 198 32s118-27 198-32c90-5 184 11 282 45v120H0z" fill="#07111f"/>
+</svg>

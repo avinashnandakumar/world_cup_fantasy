@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trophy Trail | World Cup Fantasy Concept</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+
+      <header class="site-header" aria-label="Concept navigation">
+        <a class="brand-mark" href="#top" aria-label="Trophy Trail home">
+          <span class="brand-cup" aria-hidden="true"></span>
+          <span>Trophy Trail</span>
+        </a>
+        <nav class="top-nav" aria-label="Page sections">
+          <a href="#race">Race</a>
+          <a href="#trail">Trail</a>
+          <a href="#rosters">Rosters</a>
+          <button class="ghost-button" type="button" data-open-ledger>Audit</button>
+        </nav>
+      </header>
+
+      <main id="top">
+        <section class="hero-section section-panel" aria-labelledby="hero-title">
+          <div class="hero-copy">
+            <p class="eyebrow">Simulated 8-manager league</p>
+            <h1 id="hero-title">
+              Follow the
+              <span class="typing-line" data-typing></span>
+            </h1>
+            <p class="hero-subcopy">
+              A calmer matchday dashboard built around one journey: who is closest
+              to the trophy, which flags still have life, and where the scoring math
+              changed the race.
+            </p>
+            <div class="hero-actions">
+              <a class="primary-action" href="#race">View the race</a>
+              <button class="secondary-action" type="button" data-open-ledger>
+                Open scoring audit
+              </button>
+            </div>
+          </div>
+
+          <div class="trophy-stage" aria-label="Current leader highlight">
+            <div class="trophy-card">
+              <div class="abstract-trophy" aria-hidden="true">
+                <span class="trophy-orbit"></span>
+                <span class="trophy-body"></span>
+                <span class="trophy-base"></span>
+              </div>
+              <div>
+                <p class="mini-label">Current trail leader</p>
+                <h2 data-leader-name>Loading...</h2>
+                <p class="leader-score"><span data-leader-score>0</span> pts</p>
+              </div>
+            </div>
+            <div class="flag-stream" data-flag-stream aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <section id="race" class="race-section section-panel" aria-labelledby="race-title">
+          <div class="section-heading">
+            <p class="eyebrow">Championship race</p>
+            <h2 id="race-title">One glance, no spreadsheet brain required.</h2>
+          </div>
+          <div class="race-layout">
+            <ol class="race-list" data-race-list aria-label="Manager standings"></ol>
+            <aside class="race-note">
+              <p class="mini-label">Closest chase</p>
+              <strong data-gap-copy>Calculating gap...</strong>
+              <span>
+                Rank movement and point deltas can animate here once live data is wired.
+              </span>
+            </aside>
+          </div>
+        </section>
+
+        <section id="trail" class="trail-section" aria-labelledby="trail-title">
+          <div class="section-heading trail-heading">
+            <p class="eyebrow">Tournament path</p>
+            <h2 id="trail-title">Flags as milestones, not decoration.</h2>
+          </div>
+          <div class="trail-canvas" data-trail>
+            <svg class="trail-line" viewBox="0 0 1200 420" aria-hidden="true">
+              <path d="M72 310 C 210 110, 360 430, 520 208 S 850 48, 1010 190 S 1128 300, 1160 112" />
+            </svg>
+          </div>
+        </section>
+
+        <section class="match-section section-panel" aria-labelledby="match-title">
+          <div class="section-heading">
+            <p class="eyebrow">Match impact</p>
+            <h2 id="match-title">The score bug becomes fantasy context.</h2>
+          </div>
+          <div class="match-strip" data-match-strip></div>
+        </section>
+
+        <section id="rosters" class="roster-section section-panel" aria-labelledby="roster-title">
+          <div class="section-heading">
+            <p class="eyebrow">Roster fate</p>
+            <h2 id="roster-title">Open by manager, scan by flag.</h2>
+          </div>
+          <div class="manager-tabs" data-manager-tabs aria-label="Choose a manager"></div>
+          <div class="roster-focus" data-roster-focus></div>
+        </section>
+      </main>
+    </div>
+
+    <aside class="ledger-drawer" data-ledger-drawer aria-hidden="true" aria-label="Scoring audit drawer">
+      <div class="drawer-backdrop" data-close-ledger></div>
+      <section class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="ledger-title">
+        <div class="drawer-head">
+          <div>
+            <p class="eyebrow">Audit trail</p>
+            <h2 id="ledger-title">Scoring ledger</h2>
+          </div>
+          <button class="close-button" type="button" data-close-ledger aria-label="Close audit drawer">x</button>
+        </div>
+        <div class="ledger-list" data-ledger-list></div>
+      </section>
+    </aside>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 180" role="img" aria-labelledby="title desc">
+  <title id="title">Flag ribbon UI sample</title>
+  <desc id="desc">A sample ribbon showing country flags as active UI chips.</desc>
+  <rect width="960" height="180" rx="28" fill="#f7f3e8"/>
+  <path d="M0 118c160-70 280 42 440-18s250-78 520-8v88H0Z" fill="#0f5132" opacity=".14"/>
+  <g font-family="Arial, sans-serif" font-weight="900" font-size="24">
+    <g transform="translate(48 54)">
+      <rect width="132" height="62" rx="31" fill="#ffffff"/><text x="24" y="40">🇺🇸 USA</text>
+    </g>
+    <g transform="translate(194 36)">
+      <rect width="132" height="62" rx="31" fill="#ffffff"/><text x="24" y="40">🇯🇵 JPN</text>
+    </g>
+    <g transform="translate(340 68)">
+      <rect width="132" height="62" rx="31" fill="#ffffff"/><text x="24" y="40">🇧🇷 BRA</text>
+    </g>
+    <g transform="translate(486 42)">
+      <rect width="132" height="62" rx="31" fill="#ffffff"/><text x="24" y="40">🇫🇷 FRA</text>
+    </g>
+    <g transform="translate(632 72)">
+      <rect width="132" height="62" rx="31" fill="#ffffff"/><text x="24" y="40">🇲🇦 MAR</text>
+    </g>
+    <g transform="translate(778 48)">
+      <rect width="132" height="62" rx="31" fill="#ffffff"/><text x="24" y="40">🇦🇷 ARG</text>
+    </g>
+  </g>
+</svg>
+
