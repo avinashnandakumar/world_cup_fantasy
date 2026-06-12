@@ -9,21 +9,37 @@ jobs:
   mirror_repo:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout source repo
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          token: ${{ secrets.MIRROR_TOKEN }} # This forces the workflow to use your token immediately
+          path: source
 
-      - name: Save Mirror Config
+      - name: Checkout mirror repo
+        uses: actions/checkout@v4
+        with:
+          repository: avinashnandakumar/world-cup-fantasy-roast-squad
+          token: ${{ secrets.MIRROR_TOKEN }}
+          ref: main
+          path: mirror
+
+      - name: Copy source into mirror without config.js
         run: |
-          git remote add mirror https://x-access-token:${{ secrets.MIRROR_TOKEN }}@github.com/avinashnandakumar/world-cup-fantasy-roast-squad.git
-          git fetch mirror main || true
-          git checkout mirror/main -- config.js || true
+          rsync -a --delete \
+            --exclude ".git/" \
+            --exclude "config.js" \
+            source/ mirror/
+
+      - name: Commit and push mirror changes
+        run: |
+          cd mirror
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git commit -m "Keep mirror config.js" || true
 
-      - name: Push to Mirror
-        run: |
-          git push --force mirror refs/remotes/origin/*:refs/heads/* tags/*:tags/*
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Mirror already up to date."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "Mirror source repo changes"
+          git push origin main
