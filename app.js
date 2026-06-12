@@ -500,9 +500,9 @@ function managersForTeam(teamId) {
     .map((roster) => roster.managerId);
 }
 
-function pointsForManagerInMatch(managerId, matchId) {
+function pointsForManagerTeamInMatch(managerId, teamId, matchId) {
   return model.ledger
-    .filter((row) => row.managerId === managerId && row.matchId === matchId)
+    .filter((row) => row.managerId === managerId && row.teamId === teamId && row.matchId === matchId)
     .reduce((sum, row) => sum + Number(row.points || 0), 0);
 }
 
@@ -523,7 +523,7 @@ function teamMatchManagerRows(match, teamId, hasStarted) {
     managerName: managerById(managerId)?.displayName || managerId,
     teamId,
     team,
-    points: hasStarted ? pointsForManagerInMatch(managerId, match.matchId) : null
+    points: hasStarted ? pointsForManagerTeamInMatch(managerId, teamId, match.matchId) : null
   }));
 }
 
