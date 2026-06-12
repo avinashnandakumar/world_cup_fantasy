@@ -635,6 +635,27 @@ select {
   text-transform: uppercase;
 }
 
+.match-status {
+  padding: 0.22rem 0.45rem;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.match-status-live {
+  background: #e11d48;
+  color: white;
+}
+
+.match-status-final {
+  background: #ffffff;
+  color: #101820;
+}
+
+.match-status-scheduled {
+  background: #f6c945;
+  color: #101820;
+}
+
 .score-row {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -708,6 +729,20 @@ select {
 
 .match-manager-row b {
   font-variant-numeric: tabular-nums;
+}
+
+.match-points-stack {
+  display: grid;
+  justify-items: end;
+  gap: 0.12rem;
+  line-height: 1;
+}
+
+.match-points-stack small {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.64rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .points-timeline {

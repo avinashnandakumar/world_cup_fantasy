@@ -320,7 +320,7 @@ function renderCountryBreakdown() {
 
 function renderMatches() {
   const matches = todaysMatches();
-  $("match-strip").innerHTML = matches.map(renderMatchCard).join("") || `<p class="country-meta">No games listed for today.</p>`;
+  $("match-strip").innerHTML = matches.map((match) => renderMatchCard(match, { showHoldProjection: true })).join("") || `<p class="country-meta">No games listed for today.</p>`;
 }
 
 function renderAllGames() {
@@ -358,17 +358,18 @@ function matchSortTime(match) {
   return Number.isNaN(parsed) ? Number.MAX_SAFE_INTEGER : parsed;
 }
 
-function renderMatchCard(match) {
+function renderMatchCard(match, options = {}) {
   const home = teamById(match.homeTeamId);
   const away = teamById(match.awayTeamId);
   const status = String(match.status || "scheduled").toLowerCase();
-  const hasStarted = status !== "scheduled" && status !== "postponed";
+  const hasStarted = matchHasStarted(match);
+  const showHoldProjection = options.showHoldProjection && isLiveMatch(match);
 
   return `
     <article class="match-card">
       <div class="match-stage">
         <span>${formatMatchDate(match)}</span>
-        <span>${prettyStatus(match.status)}</span>
+        <span class="match-status match-status-${matchStatusClass(match.status)}">${prettyStatus(match.status)}</span>
       </div>
       <div class="score-row">
         <span>${countryFlag(home)} ${home?.name || match.homeTeamId || "Home"}</span>
@@ -376,8 +377,8 @@ function renderMatchCard(match) {
         <span>${countryFlag(away)} ${away?.name || match.awayTeamId || "Away"}</span>
       </div>
       <div class="match-manager-points">
-        ${teamMatchManagerRows(match, match.homeTeamId, hasStarted).map(renderMatchManagerRow).join("")}
-        ${teamMatchManagerRows(match, match.awayTeamId, hasStarted).map(renderMatchManagerRow).join("")}
+        ${teamMatchManagerRows(match, match.homeTeamId, hasStarted, showHoldProjection).map(renderMatchManagerRow).join("")}
+        ${teamMatchManagerRows(match, match.awayTeamId, hasStarted, showHoldProjection).map(renderMatchManagerRow).join("")}
       </div>
     </article>
   `;
@@ -389,7 +390,10 @@ function renderMatchManagerRow(item) {
       <i></i>
       <strong>${item.managerName}</strong>
       <em>${countryFlag(item.team)} ${item.team?.name || item.teamId}</em>
-      <b>${item.points === null ? "TBD" : `${Number(item.points) > 0 ? "+" : ""}${fmt(item.points)}`}</b>
+      <b class="match-points-stack">
+        <span>${item.points === null ? "TBD" : `${Number(item.points) > 0 ? "+" : ""}${fmt(item.points)}`}</span>
+        ${item.holdPoints === null || item.holdPoints === undefined ? "" : `<small>Projected ${Number(item.holdPoints) > 0 ? "+" : ""}${fmt(item.holdPoints)}</small>`}
+      </b>
     </span>
   `;
 }
@@ -506,7 +510,46 @@ function pointsForManagerTeamInMatch(managerId, teamId, matchId) {
     .reduce((sum, row) => sum + Number(row.points || 0), 0);
 }
 
-function teamMatchManagerRows(match, teamId, hasStarted) {
+function displayPointsForManagerTeamInMatch(managerId, teamId, match) {
+  if (isLiveMatch(match)) {
+    return liveFantasyPointsForTeam(match, teamId) + redCardPointsForManagerTeamInMatch(managerId, teamId, match.matchId);
+  }
+  return pointsForManagerTeamInMatch(managerId, teamId, match.matchId);
+}
+
+function redCardPointsForManagerTeamInMatch(managerId, teamId, matchId) {
+  return model.ledger
+    .filter((row) => row.managerId === managerId && row.teamId === teamId && row.matchId === matchId && row.category === "red_card")
+    .reduce((sum, row) => sum + Number(row.points || 0), 0);
+}
+
+function liveFantasyPointsForTeam(match, teamId) {
+  const isHome = teamId === match.homeTeamId;
+  const goalsFor = Number(isHome ? match.homeGoals : match.awayGoals) || 0;
+  const goalsAgainst = Number(isHome ? match.awayGoals : match.homeGoals) || 0;
+  return (goalsFor * 0.5) + (goalsAgainst * -0.25);
+}
+
+function holdProjectionPointsForTeam(match, teamId) {
+  const isHome = teamId === match.homeTeamId;
+  const goalsFor = Number(isHome ? match.homeGoals : match.awayGoals) || 0;
+  const goalsAgainst = Number(isHome ? match.awayGoals : match.homeGoals) || 0;
+  let points = liveFantasyPointsForTeam(match, teamId);
+
+  if (goalsFor > goalsAgainst) {
+    points += 1;
+  } else if (String(match.stage || "").toLowerCase() === "group" && goalsFor === goalsAgainst) {
+    points += 0.5;
+  }
+
+  if (goalsAgainst === 0) {
+    points += 0.5;
+  }
+
+  return points;
+}
+
+function teamMatchManagerRows(match, teamId, hasStarted, showHoldProjection = false) {
   const managerIds = managersForTeam(teamId);
   const team = teamById(teamId);
   if (!managerIds.length) {
@@ -515,7 +558,8 @@ function teamMatchManagerRows(match, teamId, hasStarted) {
       managerName: "Unowned",
       teamId,
       team,
-      points: hasStarted ? 0 : null
+      points: hasStarted ? 0 : null,
+      holdPoints: showHoldProjection ? holdProjectionPointsForTeam(match, teamId) : null
     }];
   }
   return managerIds.map((managerId) => ({
@@ -523,7 +567,8 @@ function teamMatchManagerRows(match, teamId, hasStarted) {
     managerName: managerById(managerId)?.displayName || managerId,
     teamId,
     team,
-    points: hasStarted ? pointsForManagerTeamInMatch(managerId, teamId, match.matchId) : null
+    points: hasStarted ? displayPointsForManagerTeamInMatch(managerId, teamId, match) : null,
+    holdPoints: showHoldProjection ? holdProjectionPointsForTeam(match, teamId) + redCardPointsForManagerTeamInMatch(managerId, teamId, match.matchId) : null
   }));
 }
 
@@ -536,6 +581,16 @@ function todaysMatches() {
   return [...model.matches]
     .sort((a, b) => String(b.kickoffUtc || "").localeCompare(String(a.kickoffUtc || "")))
     .slice(0, 3);
+}
+
+function matchHasStarted(match) {
+  const status = String(match.status || "scheduled").toLowerCase();
+  return status !== "scheduled" && status !== "postponed";
+}
+
+function isLiveMatch(match) {
+  const status = String(match.status || "").toLowerCase();
+  return ["live", "in_progress", "playing", "halftime", "half_time"].includes(status);
 }
 
 function localDateKey(value) {
@@ -774,4 +829,12 @@ function formatShortDate(value) {
 function prettyStatus(status) {
   if (!status) return "TBD";
   return status.replaceAll("_", " ");
+}
+
+function matchStatusClass(status) {
+  const value = String(status || "scheduled").toLowerCase();
+  if (["live", "in_progress", "playing", "halftime", "half_time"].includes(value)) return "live";
+  if (value === "final" || value === "finished" || value === "complete") return "final";
+  if (value === "scheduled") return "scheduled";
+  return "scheduled";
 }

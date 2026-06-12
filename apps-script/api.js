@@ -129,8 +129,8 @@ function applyExternalMatchSyncPayload_(payload) {
     throw new Error('Payload must include matches and events arrays.');
   }
 
-  var mergedMatches = preserveManualMatchOverrides_(matches);
-  var mergedEvents = preserveManualEvents_(events);
+  var mergedMatches = mergeExternalMatches_(matches);
+  var mergedEvents = mergeExternalEvents_(events);
   writeTable_(WC_SHEETS.MATCHES, WC_HEADERS.Matches, mergedMatches);
   writeTable_(WC_SHEETS.MATCH_EVENTS, WC_HEADERS.MatchEvents, mergedEvents);
   var rebuildResult = rebuildScoringOutputs();
@@ -171,7 +171,7 @@ function getExternalSyncToken_() {
   return settings.externalSyncToken || '';
 }
 
-function preserveManualMatchOverrides_(incomingMatches) {
+function mergeExternalMatches_(incomingMatches) {
   var existing = readTable_(WC_SHEETS.MATCHES);
   var existingById = {};
   existing.forEach(function (row) {
@@ -189,20 +189,49 @@ function preserveManualMatchOverrides_(incomingMatches) {
   });
 
   existing.forEach(function (row) {
-    if (isTruthy_(row.manualOverride) && !seen[row.matchId]) {
+    if (!seen[row.matchId]) {
       rows.push(row);
     }
   });
 
-  return rows;
+  return rows.sort(function (a, b) {
+    var aKickoff = String(a.kickoffUtc || '');
+    var bKickoff = String(b.kickoffUtc || '');
+    if (aKickoff !== bKickoff) {
+      return aKickoff < bKickoff ? -1 : 1;
+    }
+    return String(a.matchId || '').localeCompare(String(b.matchId || ''));
+  });
 }
 
-function preserveManualEvents_(incomingEvents) {
+function mergeExternalEvents_(incomingEvents) {
   var existing = readTable_(WC_SHEETS.MATCH_EVENTS);
-  var manualEvents = existing.filter(function (row) {
-    return String(row.source || '').toLowerCase() === 'manual';
+  var byId = {};
+
+  existing.forEach(function (row) {
+    if (row.eventId) {
+      byId[row.eventId] = row;
+    }
   });
-  return incomingEvents.map(normalizeExternalEventRow_).concat(manualEvents);
+
+  incomingEvents.forEach(function (event) {
+    var normalized = normalizeExternalEventRow_(event);
+    var existingRow = byId[normalized.eventId];
+    if (existingRow && String(existingRow.source || '').toLowerCase() === 'manual') {
+      return;
+    }
+    byId[normalized.eventId] = normalized;
+  });
+
+  return Object.keys(byId).map(function (eventId) {
+    return byId[eventId];
+  }).sort(function (a, b) {
+    var matchCompare = String(a.matchId || '').localeCompare(String(b.matchId || ''));
+    if (matchCompare !== 0) {
+      return matchCompare;
+    }
+    return String(a.eventId || '').localeCompare(String(b.eventId || ''));
+  });
 }
 
 function normalizeExternalMatchRow_(match) {

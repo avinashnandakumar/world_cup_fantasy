@@ -6,6 +6,14 @@ function isFinalMatch_(match) {
   return String(match.status || '').toLowerCase() === WC_MATCH_STATUS.FINAL;
 }
 
+function isLiveMatch_(match) {
+  return String(match.status || '').toLowerCase() === WC_MATCH_STATUS.LIVE;
+}
+
+function isScorableMatch_(match) {
+  return isFinalMatch_(match) || isLiveMatch_(match);
+}
+
 function numberOrZero_(value) {
   var numberValue = Number(value);
   return isNaN(numberValue) ? 0 : numberValue;
@@ -51,7 +59,7 @@ function createLedgerRow_(managerId, teamId, matchId, stage, category, points, q
 }
 
 function scoreTeamInMatch_(match, teamId, redCardCount) {
-  if (!isFinalMatch_(match)) {
+  if (!isScorableMatch_(match)) {
     return [];
   }
 
@@ -59,15 +67,16 @@ function scoreTeamInMatch_(match, teamId, redCardCount) {
   var goalsFor = numberOrZero_(isHome ? match.homeScore : match.awayScore);
   var goalsAgainst = numberOrZero_(isHome ? match.awayScore : match.homeScore);
   var rows = [];
+  var isFinal = isFinalMatch_(match);
 
-  if (match.winnerTeamId === teamId) {
+  if (isFinal && match.winnerTeamId === teamId) {
     rows.push({
       category: 'win',
       points: WC_SCORING_RULES.WIN,
       quantity: 1,
       explanation: 'Match win'
     });
-  } else if (isGroupStage_(match.stage) && goalsFor === goalsAgainst) {
+  } else if (isFinal && isGroupStage_(match.stage) && goalsFor === goalsAgainst) {
     rows.push({
       category: 'draw',
       points: WC_SCORING_RULES.GROUP_DRAW,
@@ -94,7 +103,7 @@ function scoreTeamInMatch_(match, teamId, redCardCount) {
     });
   }
 
-  if (goalsAgainst === 0) {
+  if (isFinal && goalsAgainst === 0) {
     rows.push({
       category: 'clean_sheet',
       points: WC_SCORING_RULES.CLEAN_SHEET,
