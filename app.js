@@ -398,14 +398,12 @@ function renderMatchManagerRow(item) {
       <strong>${item.managerName}</strong>
       <em>${countryFlag(item.team)} ${item.team?.name || item.teamId}</em>
       <b class="match-points-stack">
-        <span>${item.points === null ? "TBD" : `${Number(item.points) > 0 ? "+" : ""}${fmt(item.points)}`}</span>
+        <span class="match-current-points">${item.points === null ? "TBD" : `${Number(item.points) > 0 ? "+" : ""}${fmt(item.points)}`}</span>
+        ${item.holdPoints === null || item.holdPoints === undefined ? "" : `
+          <span class="match-projected-points">Projected ${Number(item.holdPoints) > 0 ? "+" : ""}${fmt(item.holdPoints)}</span>
+          <span class="match-projection-breakdown">${item.projectionSummary || ""}</span>
+        `}
       </b>
-      ${item.holdPoints === null || item.holdPoints === undefined ? "" : `
-        <small class="match-projection-line">
-          <span>Projected ${Number(item.holdPoints) > 0 ? "+" : ""}${fmt(item.holdPoints)}</span>
-          <span>${item.projectionSummary || ""}</span>
-        </small>
-      `}
     </span>
   `;
 }
@@ -581,23 +579,23 @@ function projectedBreakdownForTeam(match, teamId, redCardPoints = 0) {
   const parts = [];
 
   if (goalsFor > goalsAgainst) {
-    parts.push("W1");
+    parts.push("W:1");
   } else if (String(match.stage || "").toLowerCase() === "group" && goalsFor === goalsAgainst) {
-    parts.push("D0.5");
+    parts.push("D:0.5");
   }
 
   if (goalsFor > 0) {
-    parts.push(`G${fmt(goalsFor * 0.5)}`);
+    parts.push(`G:${fmt(goalsFor * 0.5)}`);
   }
 
   if (goalsAgainst > 0) {
-    parts.push(`GA${fmt(goalsAgainst * -0.25)}`);
+    parts.push(`GA:${fmt(goalsAgainst * -0.25)}`);
   } else {
-    parts.push("CS0.5");
+    parts.push("CS:0.5");
   }
 
   if (redCardPoints) {
-    parts.push(`RC${fmt(redCardPoints)}`);
+    parts.push(`RC:${fmt(redCardPoints)}`);
   }
 
   return parts.join(" ");
