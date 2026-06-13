@@ -110,3 +110,21 @@ function readSettingsMap_() {
   });
   return map;
 }
+
+function writeSettingsValue_(key, value, notes) {
+  var spreadsheet = getFantasySpreadsheet_();
+  var sheet = ensureSheet_(spreadsheet, WC_SHEETS.SETTINGS, WC_HEADERS.Settings);
+  var lastRow = sheet.getLastRow();
+
+  if (lastRow >= 2) {
+    var keys = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var index = 0; index < keys.length; index += 1) {
+      if (String(keys[index][0]) === String(key)) {
+        sheet.getRange(index + 2, 2, 1, 2).setValues([[value, notes || '']]);
+        return;
+      }
+    }
+  }
+
+  sheet.appendRow([key, value, notes || '']);
+}

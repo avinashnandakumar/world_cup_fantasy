@@ -133,6 +133,11 @@ function applyExternalMatchSyncPayload_(payload) {
   var mergedEvents = mergeExternalEvents_(events, payload.redCardScrapingEnabled === false);
   writeTable_(WC_SHEETS.MATCHES, WC_HEADERS.Matches, mergedMatches);
   writeTable_(WC_SHEETS.MATCH_EVENTS, WC_HEADERS.MatchEvents, mergedEvents);
+  writeSettingsValue_(
+    'lastExternalSyncAtUtc',
+    payload.fetchedAtUtc || new Date().toISOString(),
+    'Last successful external Python sync payload timestamp.'
+  );
   var rebuildResult = rebuildScoringOutputs();
 
   appendSyncLog_(

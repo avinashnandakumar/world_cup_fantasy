@@ -6,6 +6,7 @@ function buildSnapshot(data, ledger, standings) {
       leagueName: settings.leagueName || 'World Cup Fantasy League',
       mode: settings.mode || 'simulation',
       generatedAtUtc: generatedAtUtc,
+      lastExternalSyncAtUtc: settings.lastExternalSyncAtUtc || '',
       scoringRules: WC_SCORING_RULES
     },
     standings: standings,

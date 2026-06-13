@@ -88,7 +88,7 @@ const countryFlags = {
 };
 
 const fallback = {
-  meta: { leagueName: "MH Fantasy World Cup", generatedAt: new Date().toISOString(), phase: "Simulated table" },
+  meta: { leagueName: "MH Fantasy World Cup", generatedAt: new Date().toISOString(), lastExternalSyncAtUtc: "", phase: "Simulated table" },
   standings: [
     { rank: 1, managerId: "black", displayName: "Black Arrows", totalPoints: 7.75 },
     { rank: 2, managerId: "blue", displayName: "Blue Comets", totalPoints: 6.75 }
@@ -147,6 +147,7 @@ async function loadModel() {
       meta: {
         leagueName: snapshot.data?.league?.name || league.league?.name || "MH Fantasy World Cup",
         generatedAt: snapshot.generatedAt,
+        lastExternalSyncAtUtc: snapshot.lastExternalSyncAtUtc || snapshot.data?.league?.lastExternalSyncAtUtc || "",
         phase: snapshot.data?.league?.currentPhase || "Live table"
       },
       standings: snapshot.data?.standings || [],
@@ -166,6 +167,7 @@ function normalizeAppsScriptSnapshot(snapshot) {
     meta: {
       leagueName: snapshot.meta?.leagueName || "World Cup Fantasy",
       generatedAt: snapshot.meta?.generatedAtUtc || new Date().toISOString(),
+      lastExternalSyncAtUtc: snapshot.meta?.lastExternalSyncAtUtc || "",
       phase: snapshot.meta?.mode === "simulation" ? "SIMULATION" : "LIVE"
     },
     standings: (snapshot.standings || []).map((standing, index) => ({
@@ -229,7 +231,8 @@ function displayLeagueName() {
 }
 
 function renderUpdated() {
-  const date = model.meta.generatedAt ? new Date(model.meta.generatedAt) : new Date();
+  const sourceTime = model.meta.lastExternalSyncAtUtc || model.meta.generatedAt;
+  const date = sourceTime ? new Date(sourceTime) : new Date();
   const label = `Updated at ${date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`;
   $("last-updated").textContent = label;
   $("top-updated").innerHTML = `<span></span> ${label}`;
@@ -240,6 +243,7 @@ function renderStandings() {
   $("standings-body").innerHTML = sorted.map((standing) => {
     const manager = managerById(standing.managerId);
     const totals = categoryTotalsForManager(standing.managerId);
+    const gamesPlayed = gamesPlayedForManager(standing.managerId);
 
     return `
       <tr style="--manager-color:${managerColor(manager, standing.managerId)}">
@@ -252,6 +256,7 @@ function renderStandings() {
             </span>
           </span>
         </td>
+        <td data-label="GP">${gamesPlayed}</td>
         <td data-label="Total" class="total-points">${fmt(standing.totalPoints)}</td>
         <td data-label="Wins">${fmt(totals.wins)}</td>
         <td data-label="Goals">${fmt(totals.goals)}</td>
@@ -277,6 +282,7 @@ function renderCountryBreakdown() {
   const managerRows = rosterManagersInOrder();
   $("country-breakdown").innerHTML = managerRows.map(({ managerId, displayName, totalPoints }) => {
     const manager = managerById(managerId);
+    const gamesPlayed = gamesPlayedForManager(managerId);
     const countries = model.rosters
       .filter((roster) => roster.managerId === managerId)
       .map((roster) => {
@@ -299,6 +305,7 @@ function renderCountryBreakdown() {
           <div>
             <h3>${displayName}</h3>
           </div>
+          <span class="roster-games-played">${gamesPlayed} GP</span>
           <strong class="roster-total-points">${fmt(totalPoints)} pts</strong>
         </header>
         <div class="roster-country-list">
@@ -502,6 +509,19 @@ function managersForTeam(teamId) {
   return model.rosters
     .filter((roster) => roster.teamId === teamId)
     .map((roster) => roster.managerId);
+}
+
+function gamesPlayedForManager(managerId) {
+  const ownedTeams = new Set(
+    model.rosters
+      .filter((roster) => roster.managerId === managerId)
+      .map((roster) => roster.teamId)
+  );
+
+  return model.matches.filter((match) => {
+    if (!matchHasStarted(match)) return false;
+    return ownedTeams.has(match.homeTeamId) || ownedTeams.has(match.awayTeamId);
+  }).length;
 }
 
 function pointsForManagerTeamInMatch(managerId, teamId, matchId) {

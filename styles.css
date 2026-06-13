@@ -441,8 +441,20 @@ select {
   overflow-wrap: anywhere;
 }
 
-.roster-total-points {
+.roster-games-played {
   margin-left: auto;
+  padding: 0.28rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--manager-color, var(--green)) 32%, white);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.roster-total-points {
   padding: 0.34rem 0.45rem;
   border-radius: var(--radius);
   background: var(--ink);
@@ -1094,17 +1106,21 @@ select {
   }
 
   .fantasy-table td:nth-child(3) {
+    display: none;
+  }
+
+  .fantasy-table td:nth-child(4) {
     grid-column: 3;
     grid-row: 1 / span 2;
     align-self: center;
     text-align: right;
   }
 
-  .fantasy-table td:nth-child(n + 4) {
+  .fantasy-table td:nth-child(n + 5) {
     display: none;
   }
 
-  .fantasy-table td:nth-child(n + 4)::before {
+  .fantasy-table td:nth-child(n + 5)::before {
     content: none;
   }
 
