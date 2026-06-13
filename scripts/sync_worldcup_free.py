@@ -38,6 +38,7 @@ DEFAULT_APPS_SCRIPT_SYNC_TOKEN = "CLIPPERSGANGORDONTBANG"
 DEFAULT_APPS_SCRIPT_SYNC_TOKEN_2 = "CLIPPERSGANGORDONTBANG"
 DEFAULT_WORLD_CUP_ESPN_DATES = ""
 DEFAULT_WORLD_CUP_GROUP_STAGE_END_DATE = "20260627"
+CONFIRMED_RED_CARD_PROVIDER_EVENT_IDS = {"49484043", "49484429", "49484548"}
 IGNORED_RED_CARD_PROVIDER_EVENT_IDS = {"49491249"}
 
 
@@ -420,6 +421,12 @@ def is_red_card_event_node(node: dict[str, Any]) -> bool:
     if not isinstance(node, dict):
         return False
 
+    provider_event_id = str(node.get("id") or node.get("uid") or "")
+    if provider_event_id in CONFIRMED_RED_CARD_PROVIDER_EVENT_IDS:
+        return True
+    if provider_event_id in IGNORED_RED_CARD_PROVIDER_EVENT_IDS:
+        return False
+
     type_text = event_type_text(node)
     has_red_card_type = contains_red_card_text(type_text) or re.search(r"\brc\b", type_text, re.IGNORECASE)
     has_event_time = bool(event_minute_from_node(node))
@@ -458,10 +465,11 @@ def extract_red_card_events(summary: dict[str, Any], match: dict[str, Any]) -> l
         if not isinstance(node, dict):
             return
 
+        provider_event_id = str(node.get("id") or node.get("uid") or "")
+        if provider_event_id in IGNORED_RED_CARD_PROVIDER_EVENT_IDS:
+            return
+
         if is_red_card_event_node(node):
-            provider_event_id = str(node.get("id") or node.get("uid") or "")
-            if provider_event_id in IGNORED_RED_CARD_PROVIDER_EVENT_IDS:
-                return
             team_id = find_team_near_node(node)
             if team_id:
                 minute = event_minute_from_node(node)
