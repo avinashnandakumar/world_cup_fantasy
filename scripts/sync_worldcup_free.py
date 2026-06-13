@@ -606,6 +606,7 @@ def describe_row_mismatches(
     expected_rows: list[dict[str, Any]],
     actual_rows: list[dict[str, Any]],
     comparable_fn: Any,
+    include_extra_rows: bool,
     limit: int = 20,
 ) -> list[str]:
     expected = rows_by_key(expected_rows, key, comparable_fn)
@@ -614,8 +615,9 @@ def describe_row_mismatches(
 
     for row_key in sorted(expected.keys() - actual.keys()):
         lines.append(f"{label} missing in sheet: {row_key}")
-    for row_key in sorted(actual.keys() - expected.keys()):
-        lines.append(f"{label} extra in sheet: {row_key}")
+    if include_extra_rows:
+        for row_key in sorted(actual.keys() - expected.keys()):
+            lines.append(f"{label} extra in sheet: {row_key}")
     for row_key in sorted(expected.keys() & actual.keys()):
         if expected[row_key] == actual[row_key]:
             continue
@@ -634,7 +636,7 @@ def describe_row_mismatches(
     return lines
 
 
-def verify_destination_against_payload(destination: dict[str, str], payload: dict[str, Any], timeout: int) -> list[str]:
+def verify_destination_against_payload(destination: dict[str, str], payload: dict[str, Any], timeout: int, strict: bool) -> list[str]:
     sheet_matches = get_apps_script_endpoint(destination["url"], "matches", timeout)
     sheet_events = get_apps_script_endpoint(destination["url"], "events", timeout)
     if not isinstance(sheet_matches, list):
@@ -643,8 +645,8 @@ def verify_destination_against_payload(destination: dict[str, str], payload: dic
         raise RuntimeError(f"Expected events endpoint to return a list for {destination['name']}.")
 
     return (
-        describe_row_mismatches("MATCH", "matchId", payload.get("matches") or [], sheet_matches, comparable_match)
-        + describe_row_mismatches("EVENT", "eventId", payload.get("events") or [], sheet_events, comparable_event)
+        describe_row_mismatches("MATCH", "matchId", payload.get("matches") or [], sheet_matches, comparable_match, strict)
+        + describe_row_mismatches("EVENT", "eventId", payload.get("events") or [], sheet_events, comparable_event, strict)
     )
 
 
@@ -826,6 +828,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--detail-sleep-seconds", type=float, default=float(os.environ.get("WORLD_CUP_SYNC_DETAIL_SLEEP_SECONDS", "0.2")))
     parser.add_argument("--force", action="store_true", help="POST even when the normalized payload hash did not change.")
     parser.add_argument("--verify-sheets", action="store_true", help="Fetch each Apps Script sheet backend and compare Matches/MatchEvents against the normalized payload.")
+    parser.add_argument("--strict-verify-sheets", action="store_true", help="When verifying sheets, also flag rows that exist in sheets but not in the normalized payload.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and normalize but do not POST.")
     parser.add_argument("--allow-empty-post", action="store_true", help="Allow posting an empty Matches table.")
     parser.add_argument("--fetch-details", action="store_true", dest="fetch_details", help="Fetch ESPN summary detail data for experimental red-card detection.")
@@ -862,7 +865,7 @@ def main(argv: list[str]) -> int:
         if args.verify_sheets:
             print("Verifying Google Sheets backends against normalized payload...")
             for destination in destinations:
-                mismatches = verify_destination_against_payload(destination, payload, args.timeout_seconds)
+                mismatches = verify_destination_against_payload(destination, payload, args.timeout_seconds, args.strict_verify_sheets)
                 sheet_mismatches[destination["key"]] = mismatches
                 if mismatches:
                     mismatch_destination_keys.add(destination["key"])

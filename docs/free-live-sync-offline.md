@@ -105,10 +105,18 @@ Audit Google Sheets against the normalized payload:
 python3 scripts/sync_worldcup_free.py --verify-sheets --dry-run
 ```
 
+Default verification is tolerant of extra rows already in Google Sheets, such as future scheduled matches not present in a today-only payload. It only flags rows that the current normalized payload expects but the sheet is missing or has changed.
+
 Repair any sheet mismatch by posting the normalized payload to only destinations with mismatches:
 
 ```bash
 python3 scripts/sync_worldcup_free.py --verify-sheets
+```
+
+Use strict verification only for full payload audits where extra sheet rows should be treated as mismatches:
+
+```bash
+python3 scripts/sync_worldcup_free.py --fetch-all-matches --dates 20260611 --verify-sheets --strict-verify-sheets --dry-run
 ```
 
 This mode fetches the Apps Script `matches` and `events` endpoints for every configured league. It requires the Apps Script project to include the `endpoint=events` handler.
