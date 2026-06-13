@@ -392,7 +392,7 @@ function renderMatchManagerRow(item) {
       <em>${countryFlag(item.team)} ${item.team?.name || item.teamId}</em>
       <b class="match-points-stack">
         <span>${item.points === null ? "TBD" : `${Number(item.points) > 0 ? "+" : ""}${fmt(item.points)}`}</span>
-        ${item.holdPoints === null || item.holdPoints === undefined ? "" : `<small>Projected ${Number(item.holdPoints) > 0 ? "+" : ""}${fmt(item.holdPoints)}</small>`}
+        ${item.holdPoints === null || item.holdPoints === undefined ? "" : `<small>Projected ${Number(item.holdPoints) > 0 ? "+" : ""}${fmt(item.holdPoints)}${item.projectionSummary ? ` · ${item.projectionSummary}` : ""}</small>`}
       </b>
     </span>
   `;
@@ -549,6 +549,35 @@ function holdProjectionPointsForTeam(match, teamId) {
   return points;
 }
 
+function projectedBreakdownForTeam(match, teamId, redCardPoints = 0) {
+  const isHome = teamId === match.homeTeamId;
+  const goalsFor = Number(isHome ? match.homeGoals : match.awayGoals) || 0;
+  const goalsAgainst = Number(isHome ? match.awayGoals : match.homeGoals) || 0;
+  const parts = [];
+
+  if (goalsFor > goalsAgainst) {
+    parts.push("W1");
+  } else if (String(match.stage || "").toLowerCase() === "group" && goalsFor === goalsAgainst) {
+    parts.push("D0.5");
+  }
+
+  if (goalsFor > 0) {
+    parts.push(`G${fmt(goalsFor * 0.5)}`);
+  }
+
+  if (goalsAgainst > 0) {
+    parts.push(`GA${fmt(goalsAgainst * -0.25)}`);
+  } else {
+    parts.push("CS0.5");
+  }
+
+  if (redCardPoints) {
+    parts.push(`RC${fmt(redCardPoints)}`);
+  }
+
+  return parts.join(" ");
+}
+
 function teamMatchManagerRows(match, teamId, hasStarted, showHoldProjection = false) {
   const managerIds = managersForTeam(teamId);
   const team = teamById(teamId);
@@ -559,17 +588,22 @@ function teamMatchManagerRows(match, teamId, hasStarted, showHoldProjection = fa
       teamId,
       team,
       points: hasStarted ? 0 : null,
-      holdPoints: showHoldProjection ? holdProjectionPointsForTeam(match, teamId) : null
+      holdPoints: showHoldProjection ? holdProjectionPointsForTeam(match, teamId) : null,
+      projectionSummary: showHoldProjection ? projectedBreakdownForTeam(match, teamId) : ""
     }];
   }
-  return managerIds.map((managerId) => ({
-    managerId,
-    managerName: managerById(managerId)?.displayName || managerId,
-    teamId,
-    team,
-    points: hasStarted ? displayPointsForManagerTeamInMatch(managerId, teamId, match) : null,
-    holdPoints: showHoldProjection ? holdProjectionPointsForTeam(match, teamId) + redCardPointsForManagerTeamInMatch(managerId, teamId, match.matchId) : null
-  }));
+  return managerIds.map((managerId) => {
+    const redCardPoints = redCardPointsForManagerTeamInMatch(managerId, teamId, match.matchId);
+    return {
+      managerId,
+      managerName: managerById(managerId)?.displayName || managerId,
+      teamId,
+      team,
+      points: hasStarted ? displayPointsForManagerTeamInMatch(managerId, teamId, match) : null,
+      holdPoints: showHoldProjection ? holdProjectionPointsForTeam(match, teamId) + redCardPoints : null,
+      projectionSummary: showHoldProjection ? projectedBreakdownForTeam(match, teamId, redCardPoints) : ""
+    };
+  });
 }
 
 function todaysMatches() {

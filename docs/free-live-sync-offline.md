@@ -95,7 +95,9 @@ python3 scripts/sync_worldcup_free.py
 If nothing changed, it exits with `No data change` and does not call Apps Script.
 Normal runs fetch the current date only, but Apps Script merges that payload into the existing `Matches` and `MatchEvents` tabs. Previously loaded future scheduled matches and historical completed matches should remain in the sheet.
 
-When a match is live, scoring updates from the current score: goals scored, goals allowed, and red cards count immediately. Win, draw, and clean-sheet points wait until the match is final.
+When a match is live, scoring updates from the current score: goals scored, goals allowed, and detected red cards count immediately. Win, draw, and clean-sheet points wait until the match is final.
+
+Red-card scraping from ESPN summary details is enabled during regular runs because red cards are part of scoring. The detector only accepts event-like red-card entries with an id and minute/clock, but this is still free scraped data. If ESPN returns a false positive, remove that row from `MatchEvents` manually. Use `--no-fetch-details` only as a temporary troubleshooting option.
 
 One-time fixture preload, from today's local date through the end of the group stage:
 

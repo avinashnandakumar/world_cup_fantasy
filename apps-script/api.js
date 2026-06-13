@@ -130,7 +130,7 @@ function applyExternalMatchSyncPayload_(payload) {
   }
 
   var mergedMatches = mergeExternalMatches_(matches);
-  var mergedEvents = mergeExternalEvents_(events);
+  var mergedEvents = mergeExternalEvents_(events, payload.redCardScrapingEnabled === false);
   writeTable_(WC_SHEETS.MATCHES, WC_HEADERS.Matches, mergedMatches);
   writeTable_(WC_SHEETS.MATCH_EVENTS, WC_HEADERS.MatchEvents, mergedEvents);
   var rebuildResult = rebuildScoringOutputs();
@@ -204,11 +204,14 @@ function mergeExternalMatches_(incomingMatches) {
   });
 }
 
-function mergeExternalEvents_(incomingEvents) {
+function mergeExternalEvents_(incomingEvents, removeExternalRedCards) {
   var existing = readTable_(WC_SHEETS.MATCH_EVENTS);
   var byId = {};
 
   existing.forEach(function (row) {
+    if (removeExternalRedCards && isExternalRedCardEvent_(row)) {
+      return;
+    }
     if (row.eventId) {
       byId[row.eventId] = row;
     }
@@ -216,6 +219,9 @@ function mergeExternalEvents_(incomingEvents) {
 
   incomingEvents.forEach(function (event) {
     var normalized = normalizeExternalEventRow_(event);
+    if (removeExternalRedCards && isExternalRedCardEvent_(normalized)) {
+      return;
+    }
     var existingRow = byId[normalized.eventId];
     if (existingRow && String(existingRow.source || '').toLowerCase() === 'manual') {
       return;
@@ -232,6 +238,11 @@ function mergeExternalEvents_(incomingEvents) {
     }
     return String(a.eventId || '').localeCompare(String(b.eventId || ''));
   });
+}
+
+function isExternalRedCardEvent_(event) {
+  var source = String(event.source || '').toLowerCase();
+  return event.eventType === WC_EVENT_TYPE.RED_CARD && source !== 'manual';
 }
 
 function normalizeExternalMatchRow_(match) {

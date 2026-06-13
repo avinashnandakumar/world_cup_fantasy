@@ -13,6 +13,7 @@ import contextlib
 import hashlib
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -374,7 +375,40 @@ def event_status_needs_details(match: dict[str, Any]) -> bool:
 
 def contains_red_card_text(value: Any) -> bool:
     text = str(value or "").lower()
-    return "red card" in text or "red-card" in text or text == "redcard"
+    return bool(re.search(r"\bred[- ]?card\b", text))
+
+
+def node_text_for_keys(node: dict[str, Any], keys: tuple[str, ...]) -> str:
+    return " ".join(str(node.get(key) or "") for key in keys)
+
+
+def event_minute_from_node(node: dict[str, Any]) -> str:
+    clock = node.get("clock")
+    minute = (
+        node.get("minute")
+        or node.get("time")
+        or node.get("displayTime")
+        or (clock.get("displayValue") if isinstance(clock, dict) else "")
+    )
+    return str(minute or "")
+
+
+def is_red_card_event_node(node: dict[str, Any]) -> bool:
+    if not isinstance(node, dict):
+        return False
+
+    type_text = node_text_for_keys(node, ("type", "cardType"))
+    descriptive_text = node_text_for_keys(
+        node,
+        ("text", "description", "detail", "shortDetail", "displayValue"),
+    )
+
+    has_red_card_type = contains_red_card_text(type_text)
+    has_red_card_description = contains_red_card_text(descriptive_text)
+    has_event_time = bool(event_minute_from_node(node))
+    has_event_id = bool(node.get("id") or node.get("uid"))
+
+    return has_event_time and has_event_id and (has_red_card_type or has_red_card_description)
 
 
 def find_team_near_node(node: Any) -> str:
@@ -407,16 +441,11 @@ def extract_red_card_events(summary: dict[str, Any], match: dict[str, Any]) -> l
         if not isinstance(node, dict):
             return
 
-        haystack = " ".join(
-            str(node.get(key) or "")
-            for key in ("type", "text", "description", "displayValue", "detail", "shortDetail", "cardType")
-        )
-        if contains_red_card_text(haystack):
+        if is_red_card_event_node(node):
             team_id = find_team_near_node(node)
             if team_id:
-                clock = node.get("clock")
-                minute = node.get("minute") or (clock.get("displayValue") if isinstance(clock, dict) else "")
-                event_id = f"{match['matchId']}::red-card::{team_id}::{node.get('id') or path}"
+                minute = event_minute_from_node(node)
+                event_id = f"{match['matchId']}::red-card::{team_id}::{node.get('id') or node.get('uid') or path}"
                 if event_id not in seen:
                     seen.add(event_id)
                     events.append(
@@ -688,6 +717,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--force", action="store_true", help="POST even when the normalized payload hash did not change.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and normalize but do not POST.")
     parser.add_argument("--allow-empty-post", action="store_true", help="Allow posting an empty Matches table.")
+    parser.add_argument("--fetch-details", action="store_true", dest="fetch_details", help="Fetch ESPN summary detail data for experimental red-card detection.")
     parser.add_argument("--no-fetch-details", action="store_false", dest="fetch_details", help="Skip ESPN summary calls for red-card detection.")
     parser.set_defaults(fetch_details=os.environ.get("WORLD_CUP_FETCH_DETAILS", "1") != "0")
     return parser.parse_args(argv)
@@ -745,6 +775,7 @@ def main(argv: list[str]) -> int:
         postable = {
             "source": payload["source"],
             "fetchedAtUtc": payload["fetchedAtUtc"],
+            "redCardScrapingEnabled": args.fetch_details,
             "matches": payload["matches"],
             "events": payload["events"],
         }
