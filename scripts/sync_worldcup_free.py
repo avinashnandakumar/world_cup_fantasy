@@ -38,6 +38,7 @@ DEFAULT_APPS_SCRIPT_SYNC_TOKEN = "CLIPPERSGANGORDONTBANG"
 DEFAULT_APPS_SCRIPT_SYNC_TOKEN_2 = "CLIPPERSGANGORDONTBANG"
 DEFAULT_WORLD_CUP_ESPN_DATES = ""
 DEFAULT_WORLD_CUP_GROUP_STAGE_END_DATE = "20260627"
+IGNORED_RED_CARD_PROVIDER_EVENT_IDS = {"49491249"}
 
 
 TEAM_ALIASES = {
@@ -280,6 +281,10 @@ def post_json(url: str, payload: dict[str, Any], timeout: int) -> dict[str, Any]
         raise RuntimeError(f"Apps Script HTTP {error.code}: {body}") from error
 
 
+def get_apps_script_endpoint(url: str, endpoint: str, timeout: int) -> Any:
+    return http_json(url, {"endpoint": endpoint}, timeout)
+
+
 def preview_body(body: str, limit: int = 1200) -> str:
     compact = " ".join(str(body or "").split())
     return compact[:limit] if compact else "<empty response>"
@@ -382,6 +387,24 @@ def node_text_for_keys(node: dict[str, Any], keys: tuple[str, ...]) -> str:
     return " ".join(str(node.get(key) or "") for key in keys)
 
 
+def event_type_text(node: dict[str, Any]) -> str:
+    values = []
+    for key in ("type", "cardType"):
+        value = node.get(key)
+        if isinstance(value, dict):
+            values.extend(str(value.get(inner_key) or "") for inner_key in (
+                "name",
+                "text",
+                "displayName",
+                "description",
+                "abbreviation",
+                "shortName",
+            ))
+        else:
+            values.append(str(value or ""))
+    return " ".join(values)
+
+
 def event_minute_from_node(node: dict[str, Any]) -> str:
     clock = node.get("clock")
     minute = (
@@ -397,18 +420,12 @@ def is_red_card_event_node(node: dict[str, Any]) -> bool:
     if not isinstance(node, dict):
         return False
 
-    type_text = node_text_for_keys(node, ("type", "cardType"))
-    descriptive_text = node_text_for_keys(
-        node,
-        ("text", "description", "detail", "shortDetail", "displayValue"),
-    )
-
-    has_red_card_type = contains_red_card_text(type_text)
-    has_red_card_description = contains_red_card_text(descriptive_text)
+    type_text = event_type_text(node)
+    has_red_card_type = contains_red_card_text(type_text) or re.search(r"\brc\b", type_text, re.IGNORECASE)
     has_event_time = bool(event_minute_from_node(node))
     has_event_id = bool(node.get("id") or node.get("uid"))
 
-    return has_event_time and has_event_id and (has_red_card_type or has_red_card_description)
+    return bool(has_event_time and has_event_id and has_red_card_type)
 
 
 def find_team_near_node(node: Any) -> str:
@@ -442,10 +459,13 @@ def extract_red_card_events(summary: dict[str, Any], match: dict[str, Any]) -> l
             return
 
         if is_red_card_event_node(node):
+            provider_event_id = str(node.get("id") or node.get("uid") or "")
+            if provider_event_id in IGNORED_RED_CARD_PROVIDER_EVENT_IDS:
+                return
             team_id = find_team_near_node(node)
             if team_id:
                 minute = event_minute_from_node(node)
-                event_id = f"{match['matchId']}::red-card::{team_id}::{node.get('id') or node.get('uid') or path}"
+                event_id = f"{match['matchId']}::red-card::{team_id}::{provider_event_id or path}"
                 if event_id not in seen:
                     seen.add(event_id)
                     events.append(
@@ -456,7 +476,7 @@ def extract_red_card_events(summary: dict[str, Any], match: dict[str, Any]) -> l
                             "eventType": "red_card",
                             "minute": minute or "",
                             "count": 1,
-                            "notes": "Free scoreboard red card",
+                            "notes": f"Free scoreboard red card; providerEventId={provider_event_id or path}",
                             "source": "espn-free",
                         }
                     )
@@ -514,9 +534,14 @@ def fetch_espn_payload(args: argparse.Namespace, previous: dict[str, Any]) -> di
         cleaned.pop("_providerEventId", None)
         known_matches[cleaned["matchId"]] = cleaned
 
-    known_events = dict(previous.get("knownEvents") or {})
+    known_events = {
+        event_id: event
+        for event_id, event in dict(previous.get("knownEvents") or {}).items()
+        if not ignored_red_card_event(event_id, event)
+    }
     for event in current_events:
-        known_events[event["eventId"]] = event
+        if not ignored_red_card_event(event["eventId"], event):
+            known_events[event["eventId"]] = event
 
     return {
         "source": "espn-free",
@@ -545,6 +570,76 @@ def comparable_match(match: dict[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in match.items() if key not in ignored}
 
 
+def comparable_event(event: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "eventId": str(event.get("eventId") or ""),
+        "matchId": str(event.get("matchId") or ""),
+        "teamId": str(event.get("teamId") or ""),
+        "eventType": str(event.get("eventType") or ""),
+        "minute": str(event.get("minute") or ""),
+        "count": int(float(event.get("count") or 0)) if str(event.get("count") or "").strip() else 1,
+        "notes": str(event.get("notes") or ""),
+        "source": str(event.get("source") or ""),
+    }
+
+
+def rows_by_key(rows: list[dict[str, Any]], key: str, comparable_fn: Any) -> dict[str, dict[str, Any]]:
+    mapped = {}
+    for row in rows or []:
+        row_key = str(row.get(key) or "")
+        if row_key:
+            mapped[row_key] = comparable_fn(row)
+    return mapped
+
+
+def describe_row_mismatches(
+    label: str,
+    key: str,
+    expected_rows: list[dict[str, Any]],
+    actual_rows: list[dict[str, Any]],
+    comparable_fn: Any,
+    limit: int = 20,
+) -> list[str]:
+    expected = rows_by_key(expected_rows, key, comparable_fn)
+    actual = rows_by_key(actual_rows, key, comparable_fn)
+    lines = []
+
+    for row_key in sorted(expected.keys() - actual.keys()):
+        lines.append(f"{label} missing in sheet: {row_key}")
+    for row_key in sorted(actual.keys() - expected.keys()):
+        lines.append(f"{label} extra in sheet: {row_key}")
+    for row_key in sorted(expected.keys() & actual.keys()):
+        if expected[row_key] == actual[row_key]:
+            continue
+        changed_fields = [
+            field for field in sorted(expected[row_key].keys())
+            if expected[row_key].get(field) != actual[row_key].get(field)
+        ]
+        details = ", ".join(
+            f"{field}: sheet={actual[row_key].get(field)!r} expected={expected[row_key].get(field)!r}"
+            for field in changed_fields
+        )
+        lines.append(f"{label} changed in sheet: {row_key} | {details}")
+
+    if len(lines) > limit:
+        return lines[:limit] + [f"... {len(lines) - limit} more {label.lower()} mismatch(es)"]
+    return lines
+
+
+def verify_destination_against_payload(destination: dict[str, str], payload: dict[str, Any], timeout: int) -> list[str]:
+    sheet_matches = get_apps_script_endpoint(destination["url"], "matches", timeout)
+    sheet_events = get_apps_script_endpoint(destination["url"], "events", timeout)
+    if not isinstance(sheet_matches, list):
+        raise RuntimeError(f"Expected matches endpoint to return a list for {destination['name']}.")
+    if not isinstance(sheet_events, list):
+        raise RuntimeError(f"Expected events endpoint to return a list for {destination['name']}.")
+
+    return (
+        describe_row_mismatches("MATCH", "matchId", payload.get("matches") or [], sheet_matches, comparable_match)
+        + describe_row_mismatches("EVENT", "eventId", payload.get("events") or [], sheet_events, comparable_event)
+    )
+
+
 def describe_match(match: dict[str, Any]) -> str:
     home = match.get("homeTeamId") or "home"
     away = match.get("awayTeamId") or "away"
@@ -559,6 +654,13 @@ def describe_event(event: dict[str, Any]) -> str:
         f"{event.get('eventId')}: match={event.get('matchId')}, team={event.get('teamId')}, "
         f"type={event.get('eventType')}, minute={event.get('minute')}, count={event.get('count')}"
     )
+
+
+def ignored_red_card_event(event_id: str, event: dict[str, Any]) -> bool:
+    if event.get("eventType") != "red_card":
+        return False
+    event_text = " ".join(str(value or "") for value in (event_id, event.get("notes"), event.get("source")))
+    return any(provider_id in event_text for provider_id in IGNORED_RED_CARD_PROVIDER_EVENT_IDS)
 
 
 def describe_payload_changes(previous: dict[str, Any], payload: dict[str, Any]) -> list[str]:
@@ -715,6 +817,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--lock-stale-seconds", type=int, default=int(os.environ.get("WORLD_CUP_SYNC_LOCK_STALE_SECONDS", str(DEFAULT_LOCK_STALE_SECONDS))))
     parser.add_argument("--detail-sleep-seconds", type=float, default=float(os.environ.get("WORLD_CUP_SYNC_DETAIL_SLEEP_SECONDS", "0.2")))
     parser.add_argument("--force", action="store_true", help="POST even when the normalized payload hash did not change.")
+    parser.add_argument("--verify-sheets", action="store_true", help="Fetch each Apps Script sheet backend and compare Matches/MatchEvents against the normalized payload.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and normalize but do not POST.")
     parser.add_argument("--allow-empty-post", action="store_true", help="Allow posting an empty Matches table.")
     parser.add_argument("--fetch-details", action="store_true", dest="fetch_details", help="Fetch ESPN summary detail data for experimental red-card detection.")
@@ -745,9 +848,29 @@ def main(argv: list[str]) -> int:
         changes = describe_payload_changes(state, payload)
         destinations = configured_destinations()
         destination_states = destination_state_map(state, destinations)
+        sheet_mismatches: dict[str, list[str]] = {}
+        mismatch_destination_keys: set[str] = set()
+
+        if args.verify_sheets:
+            print("Verifying Google Sheets backends against normalized payload...")
+            for destination in destinations:
+                mismatches = verify_destination_against_payload(destination, payload, args.timeout_seconds)
+                sheet_mismatches[destination["key"]] = mismatches
+                if mismatches:
+                    mismatch_destination_keys.add(destination["key"])
+                    print(f"- {destination['name']}: {len(mismatches)} mismatch(es)")
+                    for line in mismatches:
+                        print(f"  - {line}")
+                else:
+                    print(f"- {destination['name']}: sheet data matches payload")
+
         pending_destinations = [
             destination for destination in destinations
-            if args.force or (destination_states.get(destination["key"]) or {}).get("lastHash") != payload_hash
+            if (
+                args.force
+                or destination["key"] in mismatch_destination_keys
+                or (destination_states.get(destination["key"]) or {}).get("lastHash") != payload_hash
+            )
         ]
 
         print(f"Configured destinations: {len(destinations)}")
@@ -767,6 +890,8 @@ def main(argv: list[str]) -> int:
             print("New/changed data detected:")
             for line in changes:
                 print(f"- {line}")
+        elif mismatch_destination_keys:
+            print("No ESPN/local payload field changes detected, but sheet mismatches require posting.")
         elif args.force:
             print("No substantive match/event changes detected, but --force will post the current payload.")
         else:
@@ -786,7 +911,7 @@ def main(argv: list[str]) -> int:
                 f"Dry run: would post to {len(pending_destinations)} destination(s). "
                 f"known_matches={len(payload['matches'])} known_events={len(payload['events'])} "
                 f"current_matches={payload['_currentMatches']} current_events={payload['_currentEvents']} "
-                f"hash={payload_hash}"
+                f"sheet_mismatch_destinations={len(mismatch_destination_keys)} hash={payload_hash}"
             )
             return 0
 
@@ -809,7 +934,12 @@ def main(argv: list[str]) -> int:
             }
             save_sync_state(state_path, payload, destination_states, payload_hash)
             posted += 1
-            print(f"Posted changed data to {destination['name']}.")
+            print(
+                f"Posted changed data to {destination['name']}. "
+                f"syncVersion={result.get('syncVersion')} "
+                f"apps_script_matches={result.get('matches')} apps_script_events={result.get('events')} "
+                f"ledgerRows={result.get('ledgerRows')} standingsRows={result.get('standingsRows')}"
+            )
 
         print(
             f"Sync complete. posted_destinations={posted} skipped_destinations={len(destinations) - posted} "

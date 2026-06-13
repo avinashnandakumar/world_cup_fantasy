@@ -149,6 +149,7 @@ function applyExternalMatchSyncPayload_(payload) {
 
   return {
     ok: true,
+    syncVersion: 'external-events-replace-v2',
     matches: mergedMatches.length,
     events: mergedEvents.length,
     ledgerRows: rebuildResult.ledgerRows,
@@ -214,10 +215,7 @@ function mergeExternalEvents_(incomingEvents, removeExternalRedCards) {
   var byId = {};
 
   existing.forEach(function (row) {
-    if (removeExternalRedCards && isExternalRedCardEvent_(row)) {
-      return;
-    }
-    if (row.eventId) {
+    if (row.eventId && String(row.source || '').toLowerCase() === 'manual') {
       byId[row.eventId] = row;
     }
   });
@@ -227,8 +225,7 @@ function mergeExternalEvents_(incomingEvents, removeExternalRedCards) {
     if (removeExternalRedCards && isExternalRedCardEvent_(normalized)) {
       return;
     }
-    var existingRow = byId[normalized.eventId];
-    if (existingRow && String(existingRow.source || '').toLowerCase() === 'manual') {
+    if (byId[normalized.eventId]) {
       return;
     }
     byId[normalized.eventId] = normalized;

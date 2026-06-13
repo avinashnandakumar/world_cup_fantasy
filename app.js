@@ -399,8 +399,13 @@ function renderMatchManagerRow(item) {
       <em>${countryFlag(item.team)} ${item.team?.name || item.teamId}</em>
       <b class="match-points-stack">
         <span>${item.points === null ? "TBD" : `${Number(item.points) > 0 ? "+" : ""}${fmt(item.points)}`}</span>
-        ${item.holdPoints === null || item.holdPoints === undefined ? "" : `<small>Projected ${Number(item.holdPoints) > 0 ? "+" : ""}${fmt(item.holdPoints)}${item.projectionSummary ? ` · ${item.projectionSummary}` : ""}</small>`}
       </b>
+      ${item.holdPoints === null || item.holdPoints === undefined ? "" : `
+        <small class="match-projection-line">
+          <span>Projected ${Number(item.holdPoints) > 0 ? "+" : ""}${fmt(item.holdPoints)}</span>
+          <span>${item.projectionSummary || ""}</span>
+        </small>
+      `}
     </span>
   `;
 }

@@ -14,6 +14,7 @@ function buildSnapshot(data, ledger, standings) {
     rosters: data.rosters || [],
     teams: data.teams || [],
     matches: data.matches || [],
+    events: data.events || [],
     ledger: ledger || []
   };
 }
@@ -36,6 +37,8 @@ function doGet(event) {
     payload = snapshot.managers;
   } else if (path === 'matches') {
     payload = snapshot.matches;
+  } else if (path === 'events') {
+    payload = snapshot.events;
   } else if (path === 'ledger') {
     payload = snapshot.ledger;
   } else if (path === 'rules') {

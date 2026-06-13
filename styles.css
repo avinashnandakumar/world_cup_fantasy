@@ -707,8 +707,8 @@ select {
   grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.38rem;
-  min-height: 2rem;
-  padding: 0.32rem 0.42rem;
+  min-height: 2.25rem;
+  padding: 0.38rem 0.46rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.08);
@@ -751,14 +751,30 @@ select {
   min-width: 0;
 }
 
-.match-points-stack small {
+.match-projection-line {
+  grid-column: 2 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+  min-width: 0;
+  padding-top: 0.1rem;
   color: rgba(255, 255, 255, 0.62);
-  font-size: 0.64rem;
+  font-size: 0.66rem;
   font-weight: 800;
-  max-width: 9.5rem;
+  line-height: 1.1;
+}
+
+.match-projection-line span {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.match-projection-line span:first-child {
+  color: #dbeafe;
+  flex: 0 0 auto;
 }
 
 .points-timeline {
@@ -1164,6 +1180,12 @@ select {
   .match-strip,
   .all-games-list {
     grid-template-columns: 1fr;
+  }
+
+  .match-projection-line {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.18rem;
   }
 
   .roster-card-header {

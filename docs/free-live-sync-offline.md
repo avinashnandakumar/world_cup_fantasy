@@ -99,6 +99,20 @@ When a match is live, scoring updates from the current score: goals scored, goal
 
 Red-card scraping from ESPN summary details is enabled during regular runs because red cards are part of scoring. The detector only accepts event-like red-card entries with an id and minute/clock, but this is still free scraped data. If ESPN returns a false positive, remove that row from `MatchEvents` manually. Use `--no-fetch-details` only as a temporary troubleshooting option.
 
+Audit Google Sheets against the normalized payload:
+
+```bash
+python3 scripts/sync_worldcup_free.py --verify-sheets --dry-run
+```
+
+Repair any sheet mismatch by posting the normalized payload to only destinations with mismatches:
+
+```bash
+python3 scripts/sync_worldcup_free.py --verify-sheets
+```
+
+This mode fetches the Apps Script `matches` and `events` endpoints for every configured league. It requires the Apps Script project to include the `endpoint=events` handler.
+
 One-time fixture preload, from today's local date through the end of the group stage:
 
 ```bash
