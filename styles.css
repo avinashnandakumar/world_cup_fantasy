@@ -105,9 +105,18 @@ select {
   box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
 }
 
+.top-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
 .live-chip,
 .soft-pill,
-.jump-row a {
+.jump-row a,
+.refresh-button {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -120,6 +129,33 @@ select {
   text-decoration: none;
   font-weight: 800;
   backdrop-filter: blur(14px);
+}
+
+.refresh-button {
+  cursor: pointer;
+  color: var(--ink);
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+.refresh-button:hover {
+  transform: translateY(-1px);
+}
+
+.refresh-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.refresh-button span {
+  display: inline-block;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.refresh-button.is-refreshing span {
+  animation: spin 0.7s linear infinite;
 }
 
 .jump-row a {
@@ -969,6 +1005,12 @@ select {
   }
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes caret {
   50% {
     opacity: 0;
@@ -1021,10 +1063,20 @@ select {
     margin-bottom: 1rem;
   }
 
+  .top-actions {
+    align-items: flex-end;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
   .live-chip {
     max-width: 12rem;
     justify-content: center;
     text-align: center;
+  }
+
+  .refresh-button {
+    min-height: 2.4rem;
   }
 
   h1 {

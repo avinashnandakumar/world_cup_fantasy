@@ -116,10 +116,23 @@ const fmt = (value) => Number(value || 0).toFixed(Number(value || 0) % 1 === 0 ?
 init();
 
 async function init() {
+  setupRefreshButton();
   model = await loadModel();
   selectedManagerId = model.standings[0]?.managerId || model.managers[0]?.managerId;
   render();
   startTyping();
+}
+
+function setupRefreshButton() {
+  const button = $("refresh-dashboard");
+  if (!button) return;
+  button.addEventListener("click", () => {
+    button.disabled = true;
+    button.classList.add("is-refreshing");
+    const url = new URL(window.location.href);
+    url.searchParams.set("v", String(Date.now()));
+    window.location.href = url.toString();
+  });
 }
 
 async function loadJson(path) {
