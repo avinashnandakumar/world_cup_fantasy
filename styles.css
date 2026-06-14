@@ -353,6 +353,13 @@ h1 {
   min-width: 0;
 }
 
+.player-name-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
 .player-swatch {
   width: 0.38rem;
   height: 2.1rem;
@@ -364,6 +371,33 @@ h1 {
   display: block;
   font-size: 1rem;
   overflow-wrap: anywhere;
+}
+
+.rank-movement {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 950;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-movement-up {
+  color: #0f7a42;
+  border: 1px solid rgba(24, 165, 102, 0.28);
+  background: rgba(24, 165, 102, 0.14);
+}
+
+.rank-movement-down {
+  color: #b42318;
+  border: 1px solid rgba(229, 75, 75, 0.28);
+  background: rgba(229, 75, 75, 0.14);
 }
 
 .player-sub {
@@ -1211,8 +1245,20 @@ select {
     display: none;
   }
 
+  .player-name-row {
+    max-width: 100%;
+    gap: 0.32rem;
+  }
+
   .player-name {
     font-size: 0.96rem;
+  }
+
+  .rank-movement {
+    min-width: 1.65rem;
+    height: 1.12rem;
+    padding: 0 0.28rem;
+    font-size: 0.66rem;
   }
 
   .player-sub {

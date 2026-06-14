@@ -253,10 +253,12 @@ function renderUpdated() {
 
 function renderStandings() {
   const sorted = sortedStandings();
+  const rankMovement = rankMovementByManager();
   $("standings-body").innerHTML = sorted.map((standing) => {
     const manager = managerById(standing.managerId);
     const totals = categoryTotalsForManager(standing.managerId);
     const gamesPlayed = gamesPlayedForManager(standing.managerId);
+    const movement = rankMovement[standing.managerId];
 
     return `
       <tr style="--manager-color:${managerColor(manager, standing.managerId)}">
@@ -264,8 +266,9 @@ function renderStandings() {
         <td>
           <span class="player-cell">
             <span class="player-swatch"></span>
-            <span>
+            <span class="player-name-row">
               <strong class="player-name">${standing.displayName}</strong>
+              ${renderRankMovementBadge(movement)}
             </span>
           </span>
         </td>
@@ -502,6 +505,69 @@ function rosterManagersInOrder() {
 
 function managerById(managerId) {
   return model.managers.find((manager) => manager.managerId === managerId) || {};
+}
+
+function rankMovementByManager() {
+  const currentRanks = rankMapFromStandings(sortedStandings());
+  const timeline = buildDailyCumulativeTotals();
+  if (timeline.length < 2) return {};
+
+  const snapshots = timeline.map((day) => ({
+    date: day.date,
+    ranks: rankMapFromTotals(day.values)
+  }));
+
+  let baseline = null;
+  for (let index = snapshots.length - 2; index >= 0; index -= 1) {
+    if (hasRankDifference(snapshots[index].ranks, currentRanks)) {
+      baseline = snapshots[index];
+      break;
+    }
+  }
+  if (!baseline) return {};
+
+  return Object.fromEntries(Object.entries(currentRanks)
+    .map(([managerId, currentRank]) => {
+      const previousRank = baseline.ranks[managerId];
+      const delta = Number(previousRank || 0) - Number(currentRank || 0);
+      if (!previousRank || !delta) return null;
+      return [managerId, {
+        direction: delta > 0 ? "up" : "down",
+        places: Math.abs(delta),
+        baselineDate: baseline.date
+      }];
+    })
+    .filter(Boolean));
+}
+
+function rankMapFromStandings(standings) {
+  return Object.fromEntries(standings.map((standing, index) => [
+    standing.managerId,
+    Number(standing.rank || index + 1)
+  ]));
+}
+
+function rankMapFromTotals(values) {
+  return Object.fromEntries([...values]
+    .sort((a, b) => {
+      if (Number(b.total || 0) !== Number(a.total || 0)) return Number(b.total || 0) - Number(a.total || 0);
+      return String(a.displayName || a.managerId).localeCompare(String(b.displayName || b.managerId));
+    })
+    .map((value, index) => [value.managerId, index + 1]));
+}
+
+function hasRankDifference(previousRanks, currentRanks) {
+  return Object.entries(currentRanks).some(([managerId, currentRank]) => previousRanks[managerId] && previousRanks[managerId] !== currentRank);
+}
+
+function renderRankMovementBadge(movement) {
+  if (!movement) return "";
+  const isUp = movement.direction === "up";
+  const verb = isUp ? "Moved up" : "Moved down";
+  const noun = movement.places === 1 ? "spot" : "spots";
+  const label = `${isUp ? "▲" : "▼"}${movement.places}`;
+  const title = `${verb} ${movement.places} ${noun} since ${formatShortDate(movement.baselineDate)}`;
+  return `<span class="rank-movement rank-movement-${movement.direction}" title="${title}" aria-label="${title}">${label}</span>`;
 }
 
 function teamById(teamId) {
