@@ -111,7 +111,13 @@ function doGet(event) {
   var snapshot = getSnapshotObject();
   var payload;
 
-  if (path === 'standings') {
+  if (path === 'debug') {
+    payload = {
+      debug: true,
+      snapshotKeys: Object.keys(snapshot),
+      snapshot: snapshot
+    };
+  } else if (path === 'standings') {
     payload = snapshot.standings;
   } else if (path === 'managers') {
     payload = snapshot.managers;
@@ -137,13 +143,6 @@ function doGet(event) {
   }
 
   return ContentService
-    .createTextOutput(JSON.stringify({
-      debug: true,
-      path: path,
-      snapshotKeys: Object.keys(snapshot),
-      payloadType: Array.isArray(payload) ? 'array' : typeof payload,
-      payloadKeys: payload && !Array.isArray(payload) && typeof payload === 'object' ? Object.keys(payload) : [],
-      payload: payload
-    }))
+    .createTextOutput(JSON.stringify(payload))
     .setMimeType(ContentService.MimeType.JSON);
 }

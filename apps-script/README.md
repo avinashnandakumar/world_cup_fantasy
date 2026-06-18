@@ -45,8 +45,11 @@ Supported query parameter:
 ?endpoint=standings
 ?endpoint=managers
 ?endpoint=matches
+?endpoint=events
 ?endpoint=ledger
+?endpoint=roasts
 ?endpoint=rules
+?endpoint=debug
 ```
 
 The default endpoint is `snapshot`.

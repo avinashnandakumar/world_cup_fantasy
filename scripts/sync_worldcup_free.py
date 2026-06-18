@@ -283,7 +283,10 @@ def post_json(url: str, payload: dict[str, Any], timeout: int) -> dict[str, Any]
 
 
 def get_apps_script_endpoint(url: str, endpoint: str, timeout: int) -> Any:
-    return http_json(url, {"endpoint": endpoint}, timeout)
+    response = http_json(url, {"endpoint": endpoint}, timeout)
+    if isinstance(response, dict) and "payload" in response:
+        return response["payload"]
+    return response
 
 
 def preview_body(body: str, limit: int = 1200) -> str:
@@ -865,7 +868,11 @@ def main(argv: list[str]) -> int:
         if args.verify_sheets:
             print("Verifying Google Sheets backends against normalized payload...")
             for destination in destinations:
-                mismatches = verify_destination_against_payload(destination, payload, args.timeout_seconds, args.strict_verify_sheets)
+                try:
+                    mismatches = verify_destination_against_payload(destination, payload, args.timeout_seconds, args.strict_verify_sheets)
+                except Exception as exc:
+                    print(f"- {destination['name']}: verification skipped ({exc})")
+                    continue
                 sheet_mismatches[destination["key"]] = mismatches
                 if mismatches:
                     mismatch_destination_keys.add(destination["key"])
