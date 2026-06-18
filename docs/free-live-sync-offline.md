@@ -143,29 +143,77 @@ Run the same command again later with a later `--tournament-end-date` once knock
 
 ## Cron Wrapper
 
-Create `scripts/run_worldcup_free_sync.sh`:
+Use the embedded-schedule gate as the cron target. Cron can run every minute
+for the whole tournament; `scripts/run_worldcup_live_sync.py` only invokes the
+real sync script when a match is in its expected live window.
+
+The embedded schedule includes all 72 group-stage matches and the 32 knockout
+kickoff slots currently exposed by ESPN. Knockout participants are placeholders
+until the bracket is known, but the local poll windows already work because they
+only need kickoff times.
+
+The wrapper starts polling at kickoff. It treats group-stage matches as normally
+live for 150 minutes and knockout matches as normally live for 240 minutes, but
+it does not stop just because that expected window elapsed. After each sync, it
+reads `.worldcup-free-sync-state.json` and keeps polling the match every minute
+until the synced match row has `status=final`.
+
+As a guardrail, a match that never reaches final stops polling after 720 minutes
+by default. Use `--max-poll-minutes=0` if you want the wrapper to poll
+indefinitely until final.
+
+Smoke test the gate without posting:
 
 ```bash
-#!/bin/zsh
-cd "/Users/avi/Documents/World Cup 2026" || exit 1
-
-/usr/bin/python3 scripts/sync_worldcup_free.py >> logs/worldcup-free-sync.log 2>&1
+python3 scripts/run_worldcup_live_sync.py --dry-run --now 2026-06-18T19:15:00Z
+python3 scripts/run_worldcup_live_sync.py --dry-run --now 2026-06-18T03:00:00Z
 ```
 
 Then:
 
 ```bash
-chmod +x "scripts/run_worldcup_free_sync.sh"
+chmod +x scripts/run_worldcup_live_sync.py
+mkdir -p logs
 crontab -e
 ```
 
 Add:
 
 ```cron
-* * * * * /Users/avi/Documents/World\ Cup\ 2026/scripts/run_worldcup_free_sync.sh
+* * * * * cd /Users/avi/Documents/projects/world_cup_fantasy && /usr/bin/python3 scripts/run_worldcup_live_sync.py >> logs/worldcup-live-sync.log 2>&1
 ```
 
-Run cron only during active match windows.
+Optional: pass sync flags through the gate by repeating `--sync-arg`. For
+example, this keeps the gate but disables ESPN summary detail calls:
+
+```cron
+* * * * * cd /Users/avi/Documents/projects/world_cup_fantasy && /usr/bin/python3 scripts/run_worldcup_live_sync.py --sync-arg=--no-fetch-details >> logs/worldcup-live-sync.log 2>&1
+```
+
+## Local Status Dashboard
+
+For a quick sanity check from the terminal:
+
+```bash
+python3 scripts/worldcup_sync_status.py
+```
+
+To generate a tiny auto-refreshing HTML dashboard:
+
+```bash
+python3 scripts/worldcup_sync_status.py --html logs/worldcup-sync-status.html
+```
+
+Open `logs/worldcup-sync-status.html` in a browser. It shows the last real sync,
+last posted change, last no-new-data result, known match/event counts, current
+poll windows, recent changes, and recent errors or sheet mismatches.
+
+To keep that HTML dashboard fresh from cron, append the status generation after
+the live sync command:
+
+```cron
+* * * * * cd /Users/avi/Documents/projects/world_cup_fantasy && /usr/bin/python3 scripts/run_worldcup_live_sync.py --sync-arg=--verify-sheets >> logs/worldcup-live-sync.log 2>&1; /usr/bin/python3 scripts/worldcup_sync_status.py --html logs/worldcup-sync-status.html >/dev/null 2>&1
+```
 
 ## Files That Matter
 
@@ -174,6 +222,7 @@ Run cron only during active match windows.
 - `.worldcup-free-sync.lock`: prevents overlapping minute runs.
 - `apps-script/api.js`: receives the POST, preserves manual overrides, rebuilds scoring.
 - `logs/worldcup-free-sync.log`: local cron output.
+- `scripts/worldcup_sync_status.py`: local terminal/HTML dashboard for sync sanity checks.
 
 ## Important Notes
 

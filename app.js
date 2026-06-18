@@ -279,6 +279,16 @@ function renderStandings() {
         <td data-label="Defense" class="${totals.defense < 0 ? "negative" : ""}">${fmt(totals.defense)}</td>
         <td data-label="Bonuses">${fmt(totals.bonuses)}</td>
         <td data-label="Cards" class="${totals.cards < 0 ? "negative" : ""}">${fmt(totals.cards)}</td>
+        <td class="mobile-standings-strip-cell" aria-label="Standings stat summary">
+          <span class="mobile-standings-strip">
+            <span class="stat-chip"><span>GP</span>${gamesPlayed}</span>
+            <span class="stat-chip"><span>W</span>${fmt(totals.wins)}</span>
+            <span class="stat-chip"><span>G</span>${fmt(totals.goals)}</span>
+            <span class="stat-chip ${totals.defense < 0 ? "negative" : ""}"><span>DEF</span>${fmt(totals.defense)}</span>
+            <span class="stat-chip"><span>B</span>${fmt(totals.bonuses)}</span>
+            <span class="stat-chip ${totals.cards < 0 ? "negative" : ""}"><span>C</span>${fmt(totals.cards)}</span>
+          </span>
+        </td>
       </tr>
     `;
   }).join("");
@@ -326,14 +336,7 @@ function renderCountryBreakdown() {
         </header>
         <div class="roster-country-list">
           ${countries.map(({ roster, team, points }) => `
-            <div class="roster-country-row">
-              <span class="flag-square flag-emoji">${countryFlag(team)}</span>
-              <span class="roster-country-name">
-                <strong>${team?.name || roster.teamId}</strong>
-                <span>Group ${team?.group || "-"}</span>
-              </span>
-              <strong class="country-point-number">${fmt(points)}</strong>
-            </div>
+            ${renderRosterCountryDetails(managerId, roster, team, points)}
           `).join("") || `<p class="country-meta">No countries drafted yet.</p>`}
         </div>
       </article>
@@ -341,9 +344,33 @@ function renderCountryBreakdown() {
   }).join("");
 }
 
+function renderRosterCountryDetails(managerId, roster, team, points) {
+  const matches = matchesForTeam(roster.teamId);
+  return `
+    <details class="roster-country-detail">
+      <summary class="roster-country-row">
+        <span class="country-expand-icon" aria-hidden="true"></span>
+        <span class="flag-square flag-emoji">${countryFlag(team)}</span>
+        <span class="roster-country-name">
+          <strong>${team?.name || roster.teamId}</strong>
+          <span>Group ${team?.group || "-"} · ${matches.length} match${matches.length === 1 ? "" : "es"}</span>
+        </span>
+        <strong class="country-point-number">${fmt(points)}</strong>
+      </summary>
+      <div class="country-match-list">
+        ${matches.map((match) => renderCountryMatchRow(managerId, roster.teamId, match)).join("") || `
+          <p class="country-meta">No matches scheduled yet.</p>
+        `}
+      </div>
+    </details>
+  `;
+}
+
 function renderMatches() {
   const matches = todaysMatches();
-  $("match-strip").innerHTML = matches.map((match) => renderMatchCard(match, { showHoldProjection: true })).join("") || `<p class="country-meta">No games listed for today.</p>`;
+  const title = $("matches-title");
+  if (title) title.textContent = matches.some((match) => localDateKey(match.kickoffUtc) === localDateKey(new Date())) ? "Today's Games" : "Next Up";
+  $("match-strip").innerHTML = matches.map((match) => renderMatchCard(match, { showHoldProjection: true })).join("") || `<p class="country-meta">No games available yet.</p>`;
 }
 
 function renderAllGames() {
@@ -352,20 +379,29 @@ function renderAllGames() {
 }
 
 function renderMatchDayGroups(matches) {
-  let currentDay = "";
-  return matches.map((match) => {
+  const groups = matches.reduce((days, match) => {
     const day = localDateKey(match.kickoffUtc) || "TBD";
-    const header = day === currentDay ? "" : renderMatchDayDivider(match, day);
-    currentDay = day;
-    return `${header}${renderMatchCard(match)}`;
-  }).join("");
+    if (!days.has(day)) days.set(day, []);
+    days.get(day).push(match);
+    return days;
+  }, new Map());
+
+  return [...groups.entries()].map(([day, dayMatches]) => renderMatchDayGroup(day, dayMatches)).join("");
 }
 
-function renderMatchDayDivider(match, day) {
+function renderMatchDayGroup(day, matches) {
+  const firstMatch = matches[0] || {};
+  const isPast = day !== "TBD" && day < localDateKey(new Date());
   return `
-    <div class="match-day-divider">
-      <span>${formatMatchDayLabel(match, day)}</span>
-    </div>
+    <details class="match-day-group" ${isPast ? "" : "open"}>
+      <summary class="match-day-divider">
+        <span>${formatMatchDayLabel(firstMatch, day)}</span>
+        <strong>${matches.length} match${matches.length === 1 ? "" : "es"}</strong>
+      </summary>
+      <div class="match-day-games">
+        ${matches.map((match) => renderMatchCard(match)).join("")}
+      </div>
+    </details>
   `;
 }
 
@@ -708,14 +744,48 @@ function teamMatchManagerRows(match, teamId, hasStarted, showHoldProjection = fa
   });
 }
 
+function matchesForTeam(teamId) {
+  return [...model.matches]
+    .filter((match) => match.homeTeamId === teamId || match.awayTeamId === teamId)
+    .sort(sortMatchesChronologically);
+}
+
+function renderCountryMatchRow(managerId, teamId, match) {
+  const opponentId = match.homeTeamId === teamId ? match.awayTeamId : match.homeTeamId;
+  const opponent = teamById(opponentId);
+  const hasStarted = matchHasStarted(match);
+  const points = hasStarted ? displayPointsForManagerTeamInMatch(managerId, teamId, match) : null;
+  const score = hasStarted ? `${Number(match.homeGoals || 0)}-${Number(match.awayGoals || 0)}` : "TBD";
+  return `
+    <article class="country-match-row">
+      <span class="country-match-date">${formatMatchDate(match)}</span>
+      <span class="country-match-opponent">vs ${countryFlag(opponent)} ${opponent?.name || opponentId || "TBD"}</span>
+      <span class="country-match-score">${score}</span>
+      <strong class="country-match-points">${points === null ? prettyStatus(match.status) : `${Number(points) > 0 ? "+" : ""}${fmt(points)} pts`}</strong>
+    </article>
+  `;
+}
+
 function todaysMatches() {
   const today = localDateKey(new Date());
   const matches = model.matches.filter((match) => localDateKey(match.kickoffUtc) === today);
   if (matches.length) {
-    return matches.sort((a, b) => String(a.kickoffUtc || "").localeCompare(String(b.kickoffUtc || "")));
+    return matches.sort(sortMatchesChronologically);
   }
+
+  const now = Date.now();
+  const nextUp = model.matches
+    .filter((match) => {
+      const kickoff = matchSortTime(match);
+      return kickoff >= now && !matchHasStarted(match);
+    })
+    .sort(sortMatchesChronologically)
+    .slice(0, 3);
+  if (nextUp.length) return nextUp;
+
   return [...model.matches]
-    .sort((a, b) => String(b.kickoffUtc || "").localeCompare(String(a.kickoffUtc || "")))
+    .filter((match) => matchHasStarted(match))
+    .sort((a, b) => sortMatchesChronologically(b, a))
     .slice(0, 3);
 }
 
@@ -903,6 +973,18 @@ function buildDailyCumulativeTotals() {
 function renderPointsTimeline() {
   const timeline = buildDailyCumulativeTotals();
   const managers = rosterManagersInOrder();
+  const firstDay = timeline[0];
+  const latestDay = timeline[timeline.length - 1];
+  const latestLeader = latestDay?.leader;
+  const biggestMove = latestDay?.values
+    .map((value) => {
+      const previous = firstDay?.values.find((item) => item.managerId === value.managerId);
+      return {
+        displayName: value.displayName,
+        delta: Math.round((value.total - (previous?.total || 0)) * 100) / 100
+      };
+    })
+    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
   const allTotals = timeline.flatMap((day) => day.values.map((value) => value.total));
   const minTotal = Math.min(0, ...allTotals);
   const maxTotal = Math.max(1, ...allTotals);
@@ -917,25 +999,44 @@ function renderPointsTimeline() {
   });
 
   $("points-timeline").innerHTML = `
-    <div class="timeline-chart" style="--timeline-days:${timeline.length}">
-      <svg class="timeline-plot" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
-        ${managers.map((manager) => {
-          const points = pointsFor(manager.managerId);
-          const linePoints = points.length === 1
-            ? [{ ...points[0], x: 8 }, { ...points[0], x: 92 }]
-            : points;
-          const color = managerColor(managerById(manager.managerId), manager.managerId);
-          return `
-            <polyline points="${linePoints.map((point) => `${point.x},${point.y}`).join(" ")}" stroke="${color}" />
-            ${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="1.4" fill="${color}" />`).join("")}
-          `;
-        }).join("")}
-      </svg>
-      ${timeline.map((day, dayIndex) => `
-        <div class="timeline-day">
-          <span class="timeline-date">${formatShortDate(day.date)}</span>
-        </div>
-      `).join("")}
+    <div class="timeline-mobile-summary">
+      <article>
+        <span>Latest leader</span>
+        <strong>${latestLeader?.displayName || "No leader"}</strong>
+        <em>${fmt(latestLeader?.total || 0)} pts</em>
+      </article>
+      <article>
+        <span>Biggest move</span>
+        <strong>${biggestMove?.displayName || "No movement"}</strong>
+        <em>${biggestMove ? `${Number(biggestMove.delta) > 0 ? "+" : ""}${fmt(biggestMove.delta)} pts` : "0 pts"}</em>
+      </article>
+      <article>
+        <span>Updated</span>
+        <strong>${formatShortDate(latestDay?.date)}</strong>
+        <em>${timeline.length} day${timeline.length === 1 ? "" : "s"}</em>
+      </article>
+    </div>
+    <div class="timeline-scroll">
+      <div class="timeline-chart" style="--timeline-days:${timeline.length}">
+        <svg class="timeline-plot" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+          ${managers.map((manager) => {
+            const points = pointsFor(manager.managerId);
+            const linePoints = points.length === 1
+              ? [{ ...points[0], x: 8 }, { ...points[0], x: 92 }]
+              : points;
+            const color = managerColor(managerById(manager.managerId), manager.managerId);
+            return `
+              <polyline points="${linePoints.map((point) => `${point.x},${point.y}`).join(" ")}" stroke="${color}" />
+              ${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="1.4" fill="${color}" />`).join("")}
+            `;
+          }).join("")}
+        </svg>
+        ${timeline.map((day) => `
+          <div class="timeline-day">
+            <span class="timeline-date">${formatShortDate(day.date)}</span>
+          </div>
+        `).join("")}
+      </div>
     </div>
     <div class="timeline-table">
       ${timeline.map((day) => `

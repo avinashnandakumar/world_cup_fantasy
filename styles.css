@@ -327,6 +327,10 @@ h1 {
   vertical-align: middle;
 }
 
+.mobile-standings-strip-cell {
+  display: none;
+}
+
 .fantasy-table tbody tr {
   transition: transform 180ms ease, background 180ms ease;
 }
@@ -443,6 +447,13 @@ h1 {
   animation: drift 8s ease-in-out infinite;
 }
 
+.flag-chip .flag-square.flag-emoji {
+  width: 2.25rem;
+  height: 1.7rem;
+  font-size: 0.78rem;
+  overflow: hidden;
+}
+
 .flag-chip:nth-child(2n) {
   animation-delay: -2s;
 }
@@ -540,18 +551,74 @@ select {
   padding: 0.28rem;
 }
 
+.roster-country-detail {
+  border-radius: var(--radius);
+}
+
+.roster-country-detail:nth-child(odd) {
+  background: rgba(16, 20, 24, 0.035);
+}
+
+.roster-country-detail[open] {
+  background: rgba(16, 20, 24, 0.055);
+}
+
+.roster-country-detail[open] .roster-country-row {
+  background: rgba(255, 255, 255, 0.66);
+}
+
 .roster-country-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) minmax(2.2rem, auto);
+  grid-template-columns: auto auto minmax(0, 1fr) minmax(2.2rem, auto);
   align-items: center;
   gap: 0.36rem;
   min-height: 2.75rem;
   padding: 0.28rem;
   border-radius: var(--radius);
+  cursor: pointer;
+  list-style: none;
 }
 
-.roster-country-row:nth-child(odd) {
-  background: rgba(16, 20, 24, 0.035);
+.roster-country-row:hover {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.roster-country-row:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--manager-color, var(--green)) 42%, white);
+  outline-offset: 2px;
+}
+
+.roster-country-row::-webkit-details-marker {
+  display: none;
+}
+
+.country-expand-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  position: relative;
+}
+
+.country-expand-icon::before,
+.country-expand-icon::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 0.48rem;
+  height: 0.1rem;
+  border-radius: 999px;
+  background: var(--ink);
+  transform: translate(-50%, -50%);
+}
+
+.country-expand-icon::after {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.roster-country-detail[open] .country-expand-icon::after {
+  opacity: 0;
 }
 
 .roster-country-row .flag-square {
@@ -585,6 +652,51 @@ select {
   font-size: 0.88rem;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
+}
+
+.country-match-list {
+  display: grid;
+  gap: 0.22rem;
+  padding: 0 0.34rem 0.45rem 2.1rem;
+}
+
+.country-match-row {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto minmax(4.25rem, auto);
+  align-items: center;
+  gap: 0.38rem;
+  min-height: 2.25rem;
+  padding: 0.38rem 0.48rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 0.74rem;
+  font-weight: 850;
+}
+
+.country-match-date,
+.country-match-score {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.country-match-opponent {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.country-match-score,
+.country-match-points {
+  text-align: right;
+}
+
+.country-match-points {
+  color: #0c6b45;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .country-card {
@@ -627,6 +739,11 @@ select {
     0 8px 18px rgba(16, 20, 24, 0.12);
 }
 
+.roster-country-row .flag-square.flag-emoji {
+  font-size: 0.72rem;
+  overflow: hidden;
+}
+
 .country-card h3 {
   margin: 0.7rem 0 0.2rem;
   font-size: 1.05rem;
@@ -662,7 +779,8 @@ select {
 }
 
 .match-strip,
-.all-games-list {
+.all-games-list,
+.match-day-games {
   display: grid;
   gap: 0.75rem;
 }
@@ -671,31 +789,77 @@ select {
   grid-template-columns: repeat(auto-fit, minmax(23rem, 1fr));
 }
 
-.all-games-list {
+.all-games-list,
+.match-day-games {
   grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
 }
 
 .match-day-divider {
   grid-column: 1 / -1;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, auto) 1fr auto;
   align-items: center;
   gap: 0.75rem;
   margin-top: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.78);
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+
+.match-day-divider::-webkit-details-marker {
+  display: none;
+}
+
+.match-day-divider::before {
+  content: "+";
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: #101820;
+  color: white;
+  font-size: 0.92rem;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 .match-day-divider::after {
   content: "";
-  flex: 1;
   height: 1px;
   background: var(--line);
 }
 
+.match-day-group {
+  grid-column: 1 / -1;
+}
+
+.match-day-group[open] .match-day-divider::before {
+  content: "-";
+}
+
+.match-day-games {
+  margin-top: 0.75rem;
+}
+
 .match-day-divider span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-day-divider strong {
+  color: var(--ink);
+  font-size: 0.72rem;
   white-space: nowrap;
 }
 
@@ -752,6 +916,7 @@ select {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .score-row span:last-child {
@@ -860,6 +1025,14 @@ select {
 .points-timeline {
   display: grid;
   gap: 0.9rem;
+}
+
+.timeline-mobile-summary {
+  display: none;
+}
+
+.timeline-scroll {
+  min-width: 0;
 }
 
 .timeline-chart {
@@ -1085,7 +1258,7 @@ select {
 
   .matchday-landing {
     min-height: auto;
-    padding: var(--page-pad);
+    padding: var(--page-pad) var(--page-pad) 1rem;
     background:
       url("./assets/processed/landing-background-overlay.svg") center / cover,
       linear-gradient(180deg, rgba(4, 9, 12, 0.78), rgba(4, 9, 12, 0.48)),
@@ -1093,36 +1266,46 @@ select {
   }
 
   .topline {
-    align-items: flex-start;
-    margin-bottom: 1rem;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.6rem;
   }
 
   .top-actions {
     align-items: flex-end;
     flex-direction: column;
-    gap: 0.45rem;
+    gap: 0.35rem;
   }
 
   .live-chip {
-    max-width: 12rem;
+    min-height: 2rem;
+    max-width: 11rem;
+    padding: 0.36rem 0.52rem;
     justify-content: center;
+    font-size: 0.8rem;
     text-align: center;
   }
 
   .refresh-button {
-    min-height: 2.4rem;
+    min-height: 2.15rem;
+    padding: 0.36rem 0.58rem;
   }
 
   h1 {
     max-width: 9ch;
-    margin-bottom: 0.75rem;
-    font-size: clamp(3rem, 17vw, 4.6rem);
+    margin-bottom: 0.45rem;
+    font-size: clamp(2.3rem, 13vw, 3.7rem);
+  }
+
+  .hero-copy {
+    padding-top: 0.2rem;
   }
 
   .typing-line {
-    min-height: 3.8rem;
-    margin-bottom: 0.9rem;
-    font-size: 1.05rem;
+    min-height: 2.9rem;
+    max-width: 30rem;
+    margin-bottom: 0.65rem;
+    font-size: 0.95rem;
   }
 
   .jump-row {
@@ -1236,6 +1419,45 @@ select {
     content: none;
   }
 
+  .fantasy-table td.mobile-standings-strip-cell {
+    display: block;
+    grid-column: 2 / 4;
+    min-width: 0;
+  }
+
+  .mobile-standings-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.32rem;
+    width: 100%;
+  }
+
+  .stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+    min-height: 1.45rem;
+    padding: 0.18rem 0.42rem;
+    border: 1px solid rgba(16, 20, 24, 0.09);
+    border-radius: var(--radius);
+    background: rgba(16, 20, 24, 0.06);
+    color: var(--ink);
+    font-size: 0.74rem;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .stat-chip span {
+    color: var(--muted);
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+  }
+
+  .stat-chip.negative {
+    color: var(--red);
+  }
+
   .rank-cell {
     width: 2.15rem;
     height: 2.15rem;
@@ -1286,8 +1508,75 @@ select {
 
   .roster-breakdown,
   .match-strip,
-  .all-games-list {
+  .all-games-list,
+  .match-day-games {
     grid-template-columns: 1fr;
+  }
+
+  .roster-card {
+    border-radius: calc(var(--radius) + 0.15rem);
+    box-shadow: 0 10px 26px rgba(16, 20, 24, 0.08);
+  }
+
+  .roster-country-list {
+    gap: 0.28rem;
+    padding: 0.4rem;
+  }
+
+  .roster-country-detail {
+    border: 1px solid rgba(16, 20, 24, 0.08);
+    background: rgba(255, 255, 255, 0.54);
+  }
+
+  .roster-country-detail:nth-child(odd) {
+    background: rgba(16, 20, 24, 0.03);
+  }
+
+  .roster-country-detail[open] {
+    border-color: color-mix(in srgb, var(--manager-color, var(--green)) 28%, var(--line));
+  }
+
+  .roster-country-row {
+    grid-template-columns: 1.55rem 2rem minmax(0, 1fr) minmax(2.45rem, auto);
+    gap: 0.48rem;
+    min-height: 3rem;
+    padding: 0.44rem 0.48rem;
+  }
+
+  .country-expand-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+    border-color: color-mix(in srgb, var(--manager-color, var(--green)) 30%, var(--line));
+    box-shadow: 0 0 0 0.18rem rgba(255, 255, 255, 0.66);
+  }
+
+  .country-expand-icon::before,
+  .country-expand-icon::after {
+    background: var(--manager-color, var(--green));
+  }
+
+  .roster-country-name span {
+    font-size: 0.72rem;
+  }
+
+  .country-point-number {
+    min-width: 2.45rem;
+    font-size: 0.95rem;
+  }
+
+  .country-match-list {
+    gap: 0.3rem;
+    padding: 0 0.42rem 0.52rem;
+  }
+
+  .country-match-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 2.55rem;
+    padding: 0.46rem 0.52rem;
+  }
+
+  .country-match-score {
+    display: none;
   }
 
   .roster-card-header {
@@ -1304,9 +1593,61 @@ select {
     display: none;
   }
 
+  .timeline-mobile-summary {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .timeline-mobile-summary article {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.12rem 0.6rem;
+    min-height: 3.4rem;
+    padding: 0.58rem 0.65rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.88);
+  }
+
+  .timeline-mobile-summary span {
+    grid-column: 1 / -1;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .timeline-mobile-summary strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .timeline-mobile-summary em {
+    color: #0c6b45;
+    font-style: normal;
+    font-weight: 950;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .timeline-scroll {
+    position: relative;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 2.4rem), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 2.4rem), transparent 100%);
+  }
+
   .timeline-chart {
     grid-template-columns: repeat(var(--timeline-days), minmax(4rem, 1fr));
+    min-width: max(100%, calc(var(--timeline-days) * 4rem));
     min-height: 12rem;
+    overflow: visible;
   }
 
   .timeline-legend span {
@@ -1329,11 +1670,14 @@ select {
   }
 
   .jump-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .jump-row a {
     width: 100%;
+    min-height: 2.25rem;
+    padding-inline: 0.35rem;
+    font-size: 0.78rem;
   }
 
   .flag-chip {
@@ -1345,20 +1689,82 @@ select {
   }
 
   .score-row {
-    grid-template-columns: 1fr;
-    text-align: center;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.34rem 0.58rem;
+    text-align: left;
+  }
+
+  .score-row span {
+    display: block;
+    min-height: 1.45rem;
+    font-size: 0.93rem;
+    font-weight: 850;
   }
 
   .score-row span:last-child {
-    text-align: center;
+    text-align: left;
+  }
+
+  .score-row strong {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: stretch;
+    display: grid;
+    place-items: center;
+    min-width: 4.9rem;
+    padding: 0 0.48rem;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 1.38rem;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   .match-manager-row {
-    grid-template-columns: auto minmax(0, 1fr) minmax(6.8rem, auto);
+    grid-template-columns: auto minmax(0, 1fr) minmax(6.2rem, auto);
+    grid-template-areas:
+      "color manager points"
+      "color country points";
+    gap: 0.18rem 0.44rem;
+    min-height: 3rem;
+    padding: 0.46rem 0.5rem;
+  }
+
+  .match-manager-row i {
+    grid-area: color;
+    align-self: stretch;
+    height: auto;
+  }
+
+  .match-manager-row strong {
+    grid-area: manager;
+    align-self: end;
+    font-size: 0.86rem;
   }
 
   .match-manager-row em {
-    grid-column: 2;
+    grid-area: country;
+    align-self: start;
+    font-size: 0.76rem;
+  }
+
+  .match-points-stack {
+    grid-area: points;
+    align-self: center;
+    min-width: 0;
+    padding: 0.34rem 0.38rem;
+  }
+
+  .match-current-points {
+    font-size: 0.98rem;
+  }
+
+  .match-projected-points {
+    font-size: 0.68rem;
+  }
+
+  .match-projection-breakdown {
+    font-size: 0.6rem;
   }
 }
 
