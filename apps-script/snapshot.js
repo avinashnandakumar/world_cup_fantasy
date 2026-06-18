@@ -1,6 +1,7 @@
 function buildSnapshot(data, ledger, standings) {
   var settings = readSettingsMap_();
   var generatedAtUtc = new Date().toISOString();
+  var roastFeed = buildRoastSnapshot_(data.roasts || []);
   return {
     meta: {
       leagueName: settings.leagueName || 'World Cup Fantasy League',
@@ -15,8 +16,87 @@ function buildSnapshot(data, ledger, standings) {
     teams: data.teams || [],
     matches: data.matches || [],
     events: data.events || [],
-    ledger: ledger || []
+    ledger: ledger || [],
+    roasts: roastFeed
   };
+}
+
+function buildRoastSnapshot_(rows) {
+  var activeRows = (rows || [])
+    .filter(function (row) {
+      return String(row.status || 'active').toLowerCase() === 'active';
+    })
+    .map(normalizeRoastSnapshotRow_)
+    .sort(function (a, b) {
+      var generatedCompare = String(b.generatedAtUtc || '').localeCompare(String(a.generatedAtUtc || ''));
+      if (generatedCompare !== 0) {
+        return generatedCompare;
+      }
+      return String(b.roastId || '').localeCompare(String(a.roastId || ''));
+    });
+
+  var latestBatchId = activeRows.length ? activeRows[0].batchId : '';
+  var latestBatch = latestBatchId ? activeRows.filter(function (row) {
+    return row.batchId === latestBatchId;
+  }) : [];
+  var todayKey = localDateKey_(new Date());
+  var todayArchive = activeRows.filter(function (row) {
+    return localDateKey_(row.generatedAtUtc) === todayKey;
+  });
+
+  return {
+    latestBatch: latestBatch,
+    todayArchive: todayArchive
+  };
+}
+
+function normalizeRoastSnapshotRow_(row) {
+  return {
+    roastId: String(row.roastId || ''),
+    batchId: String(row.batchId || ''),
+    generatedAtUtc: isoString_(row.generatedAtUtc),
+    slotLocal: String(row.slotLocal || ''),
+    targetType: String(row.targetType || ''),
+    targetId: String(row.targetId || ''),
+    managerId: String(row.managerId || ''),
+    matchId: String(row.matchId || ''),
+    teamIds: parseTeamIds_(row.teamIds),
+    severity: String(row.severity || 'spicy'),
+    text: String(row.text || ''),
+    evidence: String(row.evidence || ''),
+    sourceSnapshotGeneratedAtUtc: isoString_(row.sourceSnapshotGeneratedAtUtc),
+    status: String(row.status || 'active')
+  };
+}
+
+function parseTeamIds_(value) {
+  if (Array.isArray(value)) {
+    return value.map(String).filter(Boolean);
+  }
+  return String(value || '')
+    .split(',')
+    .map(function (item) {
+      return item.trim();
+    })
+    .filter(Boolean);
+}
+
+function isoString_(value) {
+  if (!value) {
+    return '';
+  }
+  if (Object.prototype.toString.call(value) === '[object Date]') {
+    return value.toISOString();
+  }
+  return String(value);
+}
+
+function localDateKey_(value) {
+  var date = value ? new Date(value) : new Date();
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+  return Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
 }
 
 function getSnapshotObject() {
@@ -41,6 +121,8 @@ function doGet(event) {
     payload = snapshot.events;
   } else if (path === 'ledger') {
     payload = snapshot.ledger;
+  } else if (path === 'roasts') {
+    payload = snapshot.roasts;
   } else if (path === 'rules') {
     payload = {
       scoringRules: WC_SCORING_RULES,

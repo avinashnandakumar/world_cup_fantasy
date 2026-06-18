@@ -100,7 +100,8 @@ const fallback = {
   rosters: [],
   teams: [],
   matches: [],
-  ledger: []
+  ledger: [],
+  roasts: { latestBatch: [], todayArchive: [] }
 };
 
 let model = fallback;
@@ -168,7 +169,8 @@ async function loadModel() {
       rosters: league.rosters || [],
       teams: teams.teams || [],
       matches: matches.matches || [],
-      ledger: ledger.ledger || []
+      ledger: ledger.ledger || [],
+      roasts: normalizeRoasts(snapshot.data?.roasts)
     };
   } catch (error) {
     return fallback;
@@ -216,8 +218,38 @@ function normalizeAppsScriptSnapshot(snapshot) {
       status: match.status || "scheduled",
       kickoffUtc: match.kickoffUtc || ""
     })),
-    ledger: snapshot.ledger || []
+    ledger: snapshot.ledger || [],
+    roasts: normalizeRoasts(snapshot.roasts)
   };
+}
+
+function normalizeRoasts(roasts) {
+  const source = roasts || {};
+  return {
+    latestBatch: normalizeRoastRows(source.latestBatch),
+    todayArchive: normalizeRoastRows(source.todayArchive)
+  };
+}
+
+function normalizeRoastRows(rows) {
+  return (rows || []).map((row) => ({
+    roastId: row.roastId || "",
+    batchId: row.batchId || "",
+    generatedAtUtc: row.generatedAtUtc || row.createdAtUtc || "",
+    slotLocal: row.slotLocal || "",
+    targetType: row.targetType || "",
+    targetId: row.targetId || "",
+    managerId: row.managerId || "",
+    matchId: row.matchId || "",
+    teamIds: Array.isArray(row.teamIds)
+      ? row.teamIds
+      : String(row.teamIds || "").split(",").map((item) => item.trim()).filter(Boolean),
+    severity: row.severity || "spicy",
+    text: row.text || "",
+    evidence: row.evidence || "",
+    sourceSnapshotGeneratedAtUtc: row.sourceSnapshotGeneratedAtUtc || "",
+    status: row.status || "active"
+  })).filter((row) => row.text);
 }
 
 function render() {
@@ -227,6 +259,7 @@ function render() {
   renderFlags();
   renderCountryBreakdown();
   renderMatches();
+  renderRoasts();
   renderPointsTimeline();
   renderAllGames();
 }
@@ -346,6 +379,8 @@ function renderCountryBreakdown() {
 
 function renderRosterCountryDetails(managerId, roster, team, points) {
   const matches = matchesForTeam(roster.teamId);
+  const nextMatch = nextScheduledMatchForTeam(roster.teamId);
+  const nextMatchLabel = nextMatch ? `Next ${formatUpcomingMatchLabel(nextMatch)}` : "No upcoming matches";
   return `
     <details class="roster-country-detail">
       <summary class="roster-country-row">
@@ -353,7 +388,7 @@ function renderRosterCountryDetails(managerId, roster, team, points) {
         <span class="flag-square flag-emoji">${countryFlag(team)}</span>
         <span class="roster-country-name">
           <strong>${team?.name || roster.teamId}</strong>
-          <span>Group ${team?.group || "-"} · ${matches.length} match${matches.length === 1 ? "" : "es"}</span>
+          <span>Group ${team?.group || "-"} · ${nextMatchLabel}</span>
         </span>
         <strong class="country-point-number">${fmt(points)}</strong>
       </summary>
@@ -371,6 +406,87 @@ function renderMatches() {
   const title = $("matches-title");
   if (title) title.textContent = matches.some((match) => localDateKey(match.kickoffUtc) === localDateKey(new Date())) ? "Today's Games" : "Next Up";
   $("match-strip").innerHTML = matches.map((match) => renderMatchCard(match, { showHoldProjection: true })).join("") || `<p class="country-meta">No games available yet.</p>`;
+}
+
+function renderRoasts() {
+  const feed = $("roast-feed");
+  if (!feed) return;
+
+  const latestBatch = model.roasts?.latestBatch || [];
+  const archive = (model.roasts?.todayArchive || [])
+    .filter((roast) => !latestBatch.some((latest) => latest.roastId === roast.roastId));
+  const newestRoast = latestBatch[0] || archive[0];
+  const updated = $("roast-updated");
+  if (updated) {
+    updated.textContent = newestRoast ? `Generated ${formatRoastTime(newestRoast.generatedAtUtc)}` : "Warming up";
+  }
+
+  if (!latestBatch.length) {
+    feed.innerHTML = `
+      <div class="roast-empty">
+        <strong>Roast Bot is warming up.</strong>
+        <span>Waiting for enough match chaos to start throwing tomatoes.</span>
+      </div>
+    `;
+    return;
+  }
+
+  feed.innerHTML = `
+    <div class="roast-latest">
+      ${latestBatch.map(renderRoastCard).join("")}
+    </div>
+    ${archive.length ? `
+      <details class="roast-archive">
+        <summary>Today's archive <span>${archive.length} roast${archive.length === 1 ? "" : "s"}</span></summary>
+        <div class="roast-archive-list">
+          ${archive.map(renderRoastCard).join("")}
+        </div>
+      </details>
+    ` : ""}
+  `;
+}
+
+function renderRoastCard(roast) {
+  const severity = String(roast.severity || "spicy").toLowerCase() === "nuclear" ? "nuclear" : "spicy";
+  return `
+    <article class="roast-card roast-card-${severity}">
+      <div class="roast-card-top">
+        <span>${escapeHtml(roastTargetLabel(roast))}</span>
+        <strong>${escapeHtml(severity)}</strong>
+      </div>
+      <p>${escapeHtml(roast.text)}</p>
+      <div class="roast-evidence">
+        <span>${escapeHtml(roast.evidence || "Fantasy evidence pending")}</span>
+        <time>${escapeHtml(formatRoastTime(roast.generatedAtUtc))}</time>
+      </div>
+    </article>
+  `;
+}
+
+function roastTargetLabel(roast) {
+  if (roast.managerId) {
+    return managerById(roast.managerId)?.displayName || roast.managerId;
+  }
+  if (roast.targetType === "team" || (roast.teamIds || []).length === 1) {
+    const team = teamById((roast.teamIds || [roast.targetId])[0]);
+    return team?.name || roast.targetId || "Team roast";
+  }
+  if (roast.matchId) {
+    const match = matchById(roast.matchId);
+    if (match) {
+      const home = teamById(match.homeTeamId);
+      const away = teamById(match.awayTeamId);
+      return `${home?.name || match.homeTeamId} vs ${away?.name || match.awayTeamId}`;
+    }
+  }
+  if (roast.targetType === "league") return "The whole league";
+  return roast.targetId || "Roast Bot";
+}
+
+function formatRoastTime(value) {
+  const date = new Date(value || "");
+  if (Number.isNaN(date.getTime())) return "just now";
+  return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 function renderAllGames() {
@@ -610,6 +726,19 @@ function teamById(teamId) {
   return model.teams.find((team) => team.teamId === teamId) || {};
 }
 
+function matchById(matchId) {
+  return model.matches.find((match) => match.matchId === matchId);
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 function managerColor(manager, managerId) {
   if (managerColors[manager?.colorToken]) {
     return managerColors[manager.colorToken];
@@ -750,18 +879,27 @@ function matchesForTeam(teamId) {
     .sort(sortMatchesChronologically);
 }
 
+function nextScheduledMatchForTeam(teamId) {
+  const now = Date.now();
+  return matchesForTeam(teamId).find((match) => {
+    const kickoff = matchSortTime(match);
+    return kickoff >= now && !matchHasStarted(match);
+  });
+}
+
 function renderCountryMatchRow(managerId, teamId, match) {
   const opponentId = match.homeTeamId === teamId ? match.awayTeamId : match.homeTeamId;
   const opponent = teamById(opponentId);
   const hasStarted = matchHasStarted(match);
   const points = hasStarted ? displayPointsForManagerTeamInMatch(managerId, teamId, match) : null;
   const score = hasStarted ? `${Number(match.homeGoals || 0)}-${Number(match.awayGoals || 0)}` : "TBD";
+  const resultLabel = hasStarted ? `${Number(points) > 0 ? "+" : ""}${fmt(points)} pts` : formatUpcomingMatchLabel(match);
   return `
     <article class="country-match-row">
       <span class="country-match-date">${formatMatchDate(match)}</span>
       <span class="country-match-opponent">vs ${countryFlag(opponent)} ${opponent?.name || opponentId || "TBD"}</span>
       <span class="country-match-score">${score}</span>
-      <strong class="country-match-points">${points === null ? prettyStatus(match.status) : `${Number(points) > 0 ? "+" : ""}${fmt(points)} pts`}</strong>
+      <strong class="country-match-points">${resultLabel}</strong>
     </article>
   `;
 }
@@ -812,6 +950,25 @@ function formatMatchDate(match) {
   const date = new Date(match.kickoffUtc || "");
   if (Number.isNaN(date.getTime())) return "TBD";
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+function formatUpcomingMatchLabel(match) {
+  const date = new Date(match.kickoffUtc || "");
+  if (Number.isNaN(date.getTime())) return "TBD";
+
+  const today = startOfLocalDay(new Date());
+  const matchDay = startOfLocalDay(date);
+  const daysAway = Math.round((matchDay - today) / 86400000);
+
+  if (daysAway === 0) return "Today";
+  if (daysAway > 0 && daysAway < 7) {
+    return date.toLocaleDateString([], { weekday: "long" });
+  }
+  return `${date.getMonth() + 1}/${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function startOfLocalDay(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
 function formatMatchDayLabel(match, day) {

@@ -7,6 +7,7 @@ var WC_SHEETS = {
   MATCH_EVENTS: 'MatchEvents',
   SCORING_LEDGER: 'ScoringLedger',
   STANDINGS: 'Standings',
+  ROAST_FEED: 'RoastFeed',
   SYNC_LOG: 'SyncLog'
 };
 
@@ -71,6 +72,22 @@ var WC_HEADERS = {
     'aliveCount',
     'eliminatedCount',
     'lastUpdatedUtc'
+  ],
+  RoastFeed: [
+    'roastId',
+    'batchId',
+    'generatedAtUtc',
+    'slotLocal',
+    'targetType',
+    'targetId',
+    'managerId',
+    'matchId',
+    'teamIds',
+    'severity',
+    'text',
+    'evidence',
+    'sourceSnapshotGeneratedAtUtc',
+    'status'
   ],
   SyncLog: ['loggedAtUtc', 'level', 'action', 'message', 'details']
 };

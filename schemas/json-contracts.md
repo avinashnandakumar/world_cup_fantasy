@@ -174,6 +174,34 @@ Returns scoring constants and concise display metadata.
 }
 ```
 
+## GET /roasts
+
+Returns active Roast Bot content for the homepage panel and automation duplicate checks.
+
+```json
+{
+  "latestBatch": [
+    {
+      "roastId": "roast-20260617-2100-1",
+      "batchId": "roast-20260617-2100",
+      "generatedAtUtc": "2026-06-18T04:00:00Z",
+      "slotLocal": "2026-06-17 21:00 PT",
+      "targetType": "manager",
+      "targetId": "mgr-blue-comets",
+      "managerId": "mgr-blue-comets",
+      "matchId": "match-001",
+      "teamIds": ["team-atlas"],
+      "severity": "spicy",
+      "text": "A short grounded roast.",
+      "evidence": "Atlas won 2-1 and scored 1.75 fantasy points.",
+      "sourceSnapshotGeneratedAtUtc": "2026-06-18T03:59:00Z",
+      "status": "active"
+    }
+  ],
+  "todayArchive": []
+}
+```
+
 ## GET /snapshot
 
 The `snapshot` endpoint combines the frontend dashboard payload:
@@ -192,10 +220,13 @@ The `snapshot` endpoint combines the frontend dashboard payload:
     "managers": [],
     "teams": [],
     "matches": [],
-    "ledger": []
+    "ledger": [],
+    "roasts": {
+      "latestBatch": [],
+      "todayArchive": []
+    }
   }
 }
 ```
 
 The frontend should be able to render the full app from `/snapshot` alone.
-

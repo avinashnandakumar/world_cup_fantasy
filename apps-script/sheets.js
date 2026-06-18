@@ -81,7 +81,8 @@ function readLeagueData() {
     rosters: readTable_(WC_SHEETS.ROSTERS),
     teams: readTable_(WC_SHEETS.TEAMS),
     matches: readTable_(WC_SHEETS.MATCHES),
-    events: readTable_(WC_SHEETS.MATCH_EVENTS)
+    events: readTable_(WC_SHEETS.MATCH_EVENTS),
+    roasts: readTable_(WC_SHEETS.ROAST_FEED)
   };
 }
 

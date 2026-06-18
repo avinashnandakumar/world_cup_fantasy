@@ -108,10 +108,15 @@ function syncFakeApiData() {
 function doPost(event) {
   try {
     var payload = JSON.parse(event.postData && event.postData.contents ? event.postData.contents : '{}');
-    var result = applyExternalMatchSyncPayload_(payload);
+    var result;
+    if (payload.action === 'appendRoastBatch') {
+      result = appendRoastBatch_(payload);
+    } else {
+      result = applyExternalMatchSyncPayload_(payload);
+    }
     return createJsonResponse_(result);
   } catch (error) {
-    appendSyncLog_('error', 'doPost', 'External sync failed.', error.message || String(error));
+    appendSyncLog_('error', 'doPost', 'POST request failed.', error.message || String(error));
     return createJsonResponse_({
       ok: false,
       error: error.message || String(error)
@@ -156,6 +161,123 @@ function applyExternalMatchSyncPayload_(payload) {
     standingsRows: rebuildResult.standingsRows,
     receivedAtUtc: new Date().toISOString()
   };
+}
+
+function appendRoastBatch_(payload) {
+  setupSheets();
+  validateRoastBotToken_(payload.token);
+
+  var batchId = String(payload.batchId || '');
+  if (!batchId) {
+    throw new Error('Roast batch must include batchId.');
+  }
+
+  var roasts = payload.roasts || [];
+  if (!Array.isArray(roasts) || roasts.length < 1 || roasts.length > 3) {
+    throw new Error('Roast batch must include 1 to 3 roasts.');
+  }
+
+  var generatedAtUtc = payload.generatedAtUtc || new Date().toISOString();
+  var existing = readTable_(WC_SHEETS.ROAST_FEED);
+  var existingRoastIds = {};
+  existing.forEach(function (row) {
+    if (row.roastId) {
+      existingRoastIds[String(row.roastId)] = true;
+    }
+  });
+
+  var rows = roasts.map(function (roast, index) {
+    var row = normalizeRoastRow_(roast, {
+      batchId: batchId,
+      index: index,
+      generatedAtUtc: generatedAtUtc,
+      slotLocal: payload.slotLocal || '',
+      sourceSnapshotGeneratedAtUtc: payload.sourceSnapshotGeneratedAtUtc || ''
+    });
+    if (existingRoastIds[row.roastId]) {
+      throw new Error('Duplicate roastId: ' + row.roastId);
+    }
+    existingRoastIds[row.roastId] = true;
+    return row;
+  });
+
+  var sheet = ensureSheet_(getFantasySpreadsheet_(), WC_SHEETS.ROAST_FEED, WC_HEADERS.RoastFeed);
+  rows.forEach(function (row) {
+    sheet.appendRow(WC_HEADERS.RoastFeed.map(function (header) {
+      return row[header] === undefined ? '' : row[header];
+    }));
+  });
+
+  appendSyncLog_(
+    'info',
+    'appendRoastBatch',
+    'Roast batch appended.',
+    'batchId=' + batchId + ', roasts=' + rows.length
+  );
+
+  return {
+    ok: true,
+    action: 'appendRoastBatch',
+    batchId: batchId,
+    roasts: rows.length,
+    receivedAtUtc: new Date().toISOString()
+  };
+}
+
+function normalizeRoastRow_(roast, context) {
+  var text = String(roast.text || '').trim();
+  var evidence = String(roast.evidence || '').trim();
+  if (!text) {
+    throw new Error('Roast text cannot be empty.');
+  }
+  if (!evidence) {
+    throw new Error('Roast evidence cannot be empty.');
+  }
+
+  var targetType = String(roast.targetType || '').trim();
+  var targetId = String(roast.targetId || '').trim();
+  if (!targetType || !targetId) {
+    throw new Error('Roast must include targetType and targetId.');
+  }
+
+  var teamIds = roast.teamIds || [];
+  if (Array.isArray(teamIds)) {
+    teamIds = teamIds.map(String).filter(Boolean).join(',');
+  } else {
+    teamIds = String(teamIds || '');
+  }
+
+  var roastId = String(roast.roastId || [context.batchId, context.index + 1].join('::'));
+  return {
+    roastId: roastId,
+    batchId: context.batchId,
+    generatedAtUtc: context.generatedAtUtc,
+    slotLocal: context.slotLocal,
+    targetType: targetType,
+    targetId: targetId,
+    managerId: String(roast.managerId || ''),
+    matchId: String(roast.matchId || ''),
+    teamIds: teamIds,
+    severity: String(roast.severity || 'spicy'),
+    text: text,
+    evidence: evidence,
+    sourceSnapshotGeneratedAtUtc: context.sourceSnapshotGeneratedAtUtc,
+    status: String(roast.status || 'active')
+  };
+}
+
+function validateRoastBotToken_(token) {
+  var expected = getRoastBotToken_();
+  if (!expected) {
+    throw new Error('Missing ROAST_BOT_TOKEN. Set it in Script Properties.');
+  }
+  if (String(token || '') !== String(expected)) {
+    throw new Error('Invalid roast bot token.');
+  }
+}
+
+function getRoastBotToken_() {
+  return PropertiesService.getScriptProperties().getProperty('ROAST_BOT_TOKEN') || '';
 }
 
 function validateExternalSyncToken_(token) {

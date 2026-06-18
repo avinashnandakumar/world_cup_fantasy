@@ -1022,6 +1022,165 @@ select {
   font-weight: 800;
 }
 
+.roast-section {
+  background:
+    linear-gradient(135deg, rgba(16, 24, 32, 0.96), rgba(123, 29, 29, 0.9)),
+    linear-gradient(90deg, rgba(245, 200, 91, 0.16), transparent);
+  color: white;
+}
+
+.roast-section .section-heading h2 {
+  color: white;
+}
+
+.roast-section .soft-pill {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8e6a5;
+}
+
+.roast-feed,
+.roast-latest,
+.roast-archive-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.roast-latest {
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.roast-card {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+  min-height: 10rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.2);
+}
+
+.roast-card-nuclear {
+  border-color: rgba(245, 200, 91, 0.46);
+  background:
+    linear-gradient(150deg, rgba(245, 200, 91, 0.16), rgba(255, 255, 255, 0.08)),
+    rgba(255, 255, 255, 0.08);
+}
+
+.roast-card-top,
+.roast-evidence,
+.roast-archive summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.roast-card-top span {
+  min-width: 0;
+  overflow: hidden;
+  color: #f8e6a5;
+  font-size: 0.74rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.roast-card-top strong {
+  flex: 0 0 auto;
+  padding: 0.24rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #101820;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.roast-card p {
+  margin: 0;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+.roast-evidence {
+  align-self: end;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.roast-evidence span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roast-evidence time {
+  flex: 0 0 auto;
+  color: #f8e6a5;
+  font-variant-numeric: tabular-nums;
+}
+
+.roast-archive {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  padding-top: 0.7rem;
+}
+
+.roast-archive summary {
+  min-height: 2.4rem;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.84);
+  font-weight: 950;
+  list-style: none;
+}
+
+.roast-archive summary::-webkit-details-marker {
+  display: none;
+}
+
+.roast-archive summary span {
+  color: #f8e6a5;
+  font-size: 0.78rem;
+}
+
+.roast-archive-list {
+  margin-top: 0.6rem;
+}
+
+.roast-archive-list .roast-card {
+  min-height: 0;
+  padding: 0.72rem;
+}
+
+.roast-empty {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 6rem;
+  place-content: center;
+  border: 1px dashed rgba(255, 255, 255, 0.28);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.roast-empty strong {
+  color: white;
+  font-size: 1.1rem;
+}
+
+.roast-empty span {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
 .points-timeline {
   display: grid;
   gap: 0.9rem;
@@ -1508,9 +1667,29 @@ select {
 
   .roster-breakdown,
   .match-strip,
+  .roast-latest,
   .all-games-list,
   .match-day-games {
     grid-template-columns: 1fr;
+  }
+
+  .roast-card {
+    min-height: 0;
+    padding: 0.78rem;
+  }
+
+  .roast-card p {
+    font-size: 1.05rem;
+  }
+
+  .roast-evidence {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.24rem;
+  }
+
+  .roast-evidence span {
+    white-space: normal;
   }
 
   .roster-card {

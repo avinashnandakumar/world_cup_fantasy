@@ -20,6 +20,92 @@
     "matchesFile": "sample-data/simulated-matches.json",
     "ledgerFile": "sample-data/simulated-scoring-ledger-8.json",
     "standingsFile": "sample-data/simulated-standings-8.json",
+    "roasts": {
+      "latestBatch": [
+        {
+          "roastId": "sample-roast-20260607-2100-1",
+          "batchId": "sample-roast-20260607-2100",
+          "generatedAtUtc": "2026-06-07T21:00:00Z",
+          "slotLocal": "2026-06-07 14:00 PT",
+          "targetType": "manager",
+          "targetId": "mgr-black-arrows",
+          "managerId": "mgr-black-arrows",
+          "matchId": "match-008",
+          "teamIds": ["team-ionia"],
+          "severity": "nuclear",
+          "text": "Black Arrows getting carried by Ionia like a group project where one kid discovered caffeine and the rest discovered vibes.",
+          "evidence": "Ionia won the final and dropped 3.75 fantasy points.",
+          "sourceSnapshotGeneratedAtUtc": "2026-06-07T18:00:00Z",
+          "status": "active"
+        },
+        {
+          "roastId": "sample-roast-20260607-2100-2",
+          "batchId": "sample-roast-20260607-2100",
+          "generatedAtUtc": "2026-06-07T21:00:00Z",
+          "slotLocal": "2026-06-07 14:00 PT",
+          "targetType": "manager",
+          "targetId": "mgr-red-rockets",
+          "managerId": "mgr-red-rockets",
+          "matchId": "match-001",
+          "teamIds": ["team-borealia"],
+          "severity": "spicy",
+          "text": "Red Rockets drafted Borealia and immediately learned the fantasy value of letting everyone else have nice things.",
+          "evidence": "Borealia finished match-001 at -1.00 fantasy points.",
+          "sourceSnapshotGeneratedAtUtc": "2026-06-07T18:00:00Z",
+          "status": "active"
+        }
+      ],
+      "todayArchive": [
+        {
+          "roastId": "sample-roast-20260607-2100-1",
+          "batchId": "sample-roast-20260607-2100",
+          "generatedAtUtc": "2026-06-07T21:00:00Z",
+          "slotLocal": "2026-06-07 14:00 PT",
+          "targetType": "manager",
+          "targetId": "mgr-black-arrows",
+          "managerId": "mgr-black-arrows",
+          "matchId": "match-008",
+          "teamIds": ["team-ionia"],
+          "severity": "nuclear",
+          "text": "Black Arrows getting carried by Ionia like a group project where one kid discovered caffeine and the rest discovered vibes.",
+          "evidence": "Ionia won the final and dropped 3.75 fantasy points.",
+          "sourceSnapshotGeneratedAtUtc": "2026-06-07T18:00:00Z",
+          "status": "active"
+        },
+        {
+          "roastId": "sample-roast-20260607-2100-2",
+          "batchId": "sample-roast-20260607-2100",
+          "generatedAtUtc": "2026-06-07T21:00:00Z",
+          "slotLocal": "2026-06-07 14:00 PT",
+          "targetType": "manager",
+          "targetId": "mgr-red-rockets",
+          "managerId": "mgr-red-rockets",
+          "matchId": "match-001",
+          "teamIds": ["team-borealia"],
+          "severity": "spicy",
+          "text": "Red Rockets drafted Borealia and immediately learned the fantasy value of letting everyone else have nice things.",
+          "evidence": "Borealia finished match-001 at -1.00 fantasy points.",
+          "sourceSnapshotGeneratedAtUtc": "2026-06-07T18:00:00Z",
+          "status": "active"
+        },
+        {
+          "roastId": "sample-roast-20260607-1700-1",
+          "batchId": "sample-roast-20260607-1700",
+          "generatedAtUtc": "2026-06-07T17:00:00Z",
+          "slotLocal": "2026-06-07 10:00 PT",
+          "targetType": "team",
+          "targetId": "team-eldoria",
+          "managerId": "mgr-purple-reign",
+          "matchId": "match-003",
+          "teamIds": ["team-eldoria"],
+          "severity": "spicy",
+          "text": "Eldoria scored three, conceded three, grabbed a red, and somehow turned the box score into a financial crime scene.",
+          "evidence": "Eldoria drew 3-3 and finished match-003 at 0.25 fantasy points.",
+          "sourceSnapshotGeneratedAtUtc": "2026-06-07T18:00:00Z",
+          "status": "active"
+        }
+      ]
+    },
     "standings": [
       { "rank": 1, "managerId": "mgr-black-arrows", "displayName": "Black Arrows", "totalPoints": 7.75, "championOwned": true },
       { "rank": 2, "managerId": "mgr-blue-comets", "displayName": "Blue Comets", "totalPoints": 6.75, "championOwned": false },
