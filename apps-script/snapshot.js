@@ -137,6 +137,13 @@ function doGet(event) {
   }
 
   return ContentService
-    .createTextOutput(JSON.stringify(payload))
+    .createTextOutput(JSON.stringify({
+      debug: true,
+      path: path,
+      snapshotKeys: Object.keys(snapshot),
+      payloadType: Array.isArray(payload) ? 'array' : typeof payload,
+      payloadKeys: payload && !Array.isArray(payload) && typeof payload === 'object' ? Object.keys(payload) : [],
+      payload: payload
+    }))
     .setMimeType(ContentService.MimeType.JSON);
 }
