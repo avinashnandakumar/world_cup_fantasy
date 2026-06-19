@@ -113,6 +113,10 @@ select {
   min-width: 0;
 }
 
+.brand-link {
+  display: inline-flex;
+}
+
 .live-chip,
 .soft-pill,
 .jump-row a,
@@ -141,6 +145,10 @@ select {
 
 .refresh-button:hover {
   transform: translateY(-1px);
+}
+
+.draft-results-button {
+  white-space: nowrap;
 }
 
 .refresh-button:disabled {
@@ -1179,6 +1187,387 @@ body.modal-open {
   font-variant-numeric: tabular-nums;
 }
 
+.draft-page {
+  background:
+    linear-gradient(180deg, #07150f 0, #13231b 24rem, #f5f0e5 24.1rem, #fbf7ee 100%);
+}
+
+.draft-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 36rem;
+  padding: var(--page-pad);
+  color: white;
+  background:
+    url("./assets/processed/landing-background-overlay.svg") center / cover,
+    linear-gradient(90deg, rgba(4, 9, 12, 0.9), rgba(4, 9, 12, 0.54)),
+    url("./assets/processed/landing-background-desktop.jpg") center / cover;
+}
+
+.draft-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 78%, rgba(245, 200, 91, 0.34), transparent 22rem),
+    radial-gradient(circle at 86% 16%, rgba(77, 213, 255, 0.22), transparent 26rem),
+    linear-gradient(transparent 0 72%, rgba(10, 90, 60, 0.72));
+}
+
+.draft-topline,
+.draft-hero-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.draft-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(18rem, 0.8fr) minmax(24rem, 1.2fr);
+  gap: clamp(1rem, 4vw, 3rem);
+  align-items: end;
+  width: min(1220px, 100%);
+  min-height: 25rem;
+  margin: 0 auto;
+}
+
+.draft-copy h1 {
+  max-width: 9ch;
+}
+
+.draft-lede {
+  max-width: 34rem;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: clamp(1.1rem, 2.2vw, 1.55rem);
+  font-weight: 850;
+  line-height: 1.28;
+}
+
+.draft-scoreboard {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.draft-scoreboard article,
+.draft-highlight-card,
+.power-card,
+.draft-roster-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+  box-shadow: 0 16px 38px rgba(16, 20, 24, 0.1);
+}
+
+.draft-scoreboard article {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 7.2rem;
+  padding: 0.95rem;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 251, 242, 0.92);
+  backdrop-filter: blur(14px);
+}
+
+.draft-scoreboard span,
+.draft-highlight-card span,
+.draft-roster-card header p,
+.draft-roster-pick em,
+.draft-country-cell em {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.draft-scoreboard strong {
+  align-self: end;
+  font-size: clamp(1.35rem, 3vw, 2.1rem);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.draft-section {
+  margin-top: clamp(1rem, 3vw, 2rem);
+}
+
+.draft-soft-pill {
+  border-color: var(--line);
+  background: white;
+  color: var(--ink);
+}
+
+.power-rankings,
+.draft-rosters {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.power-card {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) minmax(10rem, auto);
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 6rem;
+  padding: 0.85rem;
+}
+
+.power-rank {
+  display: grid;
+  place-items: center;
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: white;
+  font-size: 1.05rem;
+  font-weight: 950;
+}
+
+.power-main {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.power-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.power-title-row h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.power-bar {
+  height: 0.72rem;
+  border-radius: 999px;
+  background: rgba(16, 20, 24, 0.08);
+  overflow: hidden;
+}
+
+.power-bar span {
+  display: block;
+  width: var(--power-width);
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--manager-color), color-mix(in srgb, var(--manager-color) 35%, var(--gold)));
+}
+
+.power-meta,
+.power-roster-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.power-meta span,
+.power-roster-flags span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.7rem;
+  padding: 0.18rem 0.45rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.78);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.power-roster-flags {
+  justify-content: flex-end;
+}
+
+.power-roster-flags span {
+  justify-content: center;
+  min-width: 2.05rem;
+  padding-inline: 0.3rem;
+  font-size: 0.92rem;
+}
+
+.draft-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.7rem;
+}
+
+.draft-highlight-card {
+  display: grid;
+  gap: 0.42rem;
+  min-height: 8.6rem;
+  padding: 0.9rem;
+}
+
+.draft-highlight-card strong {
+  align-self: end;
+  font-size: 1.25rem;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.draft-highlight-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.draft-rosters {
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  align-items: start;
+}
+
+.draft-roster-card {
+  overflow: hidden;
+}
+
+.draft-roster-card header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 4.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--manager-color) 16%, white), rgba(255, 255, 255, 0.88));
+}
+
+.draft-roster-card header h3 {
+  margin: 0 0 0.15rem;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.draft-roster-card header p {
+  margin: 0;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.draft-roster-card header > strong {
+  padding: 0.42rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: white;
+  font-variant-numeric: tabular-nums;
+}
+
+.draft-roster-picks {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.36rem;
+}
+
+.draft-roster-pick {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.15rem;
+  padding: 0.35rem;
+  border-radius: var(--radius);
+}
+
+.draft-roster-pick:nth-child(odd) {
+  background: rgba(16, 20, 24, 0.04);
+}
+
+.draft-roster-pick strong,
+.draft-roster-pick em,
+.draft-country-cell strong,
+.draft-country-cell em {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.draft-roster-pick em,
+.draft-country-cell em {
+  margin-top: 0.08rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.draft-roster-pick b {
+  font-variant-numeric: tabular-nums;
+}
+
+.draft-board-wrap {
+  overflow-x: auto;
+  scrollbar-color: rgba(16, 20, 24, 0.34) transparent;
+}
+
+.draft-board-table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.draft-board-table th {
+  padding: 0.7rem 0.65rem;
+  color: #6a554a;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.draft-board-table td {
+  padding: 0.68rem 0.65rem;
+  border-top: 1px solid var(--line);
+  font-weight: 850;
+  vertical-align: middle;
+}
+
+.draft-board-table th:nth-child(1),
+.draft-board-table td:nth-child(1) {
+  width: 5rem;
+}
+
+.draft-board-table th:nth-child(4),
+.draft-board-table td:nth-child(4),
+.draft-board-table th:nth-child(5),
+.draft-board-table td:nth-child(5),
+.draft-board-table th:nth-child(6),
+.draft-board-table td:nth-child(6) {
+  width: 7.5rem;
+  text-align: right;
+}
+
+.draft-country-cell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.draft-country-cell .flag-square,
+.draft-roster-pick .flag-square {
+  width: 2.25rem;
+  height: 1.7rem;
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+
+.draft-empty {
+  padding: 1rem;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-weight: 850;
+}
+
 .match-breakdown-team {
   padding: 0.75rem;
 }
@@ -1638,6 +2027,12 @@ body.modal-open {
   .table-stage {
     max-width: 100%;
   }
+
+  .draft-hero-grid {
+    grid-template-columns: 1fr;
+    align-items: start;
+    min-height: auto;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1651,6 +2046,15 @@ body.modal-open {
     background:
       url("./assets/processed/landing-background-overlay.svg") center / cover,
       linear-gradient(180deg, rgba(4, 9, 12, 0.78), rgba(4, 9, 12, 0.48)),
+      url("./assets/processed/landing-background-mobile.jpg") center top / cover;
+  }
+
+  .draft-hero {
+    min-height: auto;
+    padding: var(--page-pad) var(--page-pad) 1rem;
+    background:
+      url("./assets/processed/landing-background-overlay.svg") center / cover,
+      linear-gradient(180deg, rgba(4, 9, 12, 0.78), rgba(4, 9, 12, 0.54)),
       url("./assets/processed/landing-background-mobile.jpg") center top / cover;
   }
 
@@ -1678,6 +2082,12 @@ body.modal-open {
   .refresh-button {
     min-height: 2.15rem;
     padding: 0.36rem 0.58rem;
+  }
+
+  .draft-results-button {
+    max-width: 11rem;
+    justify-content: center;
+    text-align: center;
   }
 
   h1 {
@@ -1718,6 +2128,110 @@ body.modal-open {
 
   .section-heading h2 {
     font-size: 1.7rem;
+  }
+
+  .draft-scoreboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .draft-scoreboard article {
+    min-height: 6rem;
+    padding: 0.75rem;
+  }
+
+  .draft-scoreboard strong {
+    font-size: 1.35rem;
+  }
+
+  .draft-lede {
+    max-width: 28rem;
+    font-size: 0.98rem;
+  }
+
+  .power-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .power-roster-flags {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    padding-left: 3.9rem;
+  }
+
+  .draft-board-wrap {
+    overflow-x: visible;
+  }
+
+  .draft-board-table,
+  .draft-board-table tbody,
+  .draft-board-table tr,
+  .draft-board-table td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .draft-board-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .draft-board-table tbody {
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .draft-board-table tr {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.42rem 0.6rem;
+    padding: 0.7rem;
+    border: 1px solid var(--line);
+    border-left: 0.35rem solid var(--manager-color, var(--green));
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  .draft-board-table td {
+    padding: 0;
+    border-top: 0;
+    text-align: left !important;
+  }
+
+  .draft-board-table td:first-child {
+    grid-row: 1 / span 2;
+  }
+
+  .draft-board-table td:nth-child(2),
+  .draft-board-table td:nth-child(3) {
+    grid-column: 2;
+  }
+
+  .draft-board-table td:nth-child(n + 4) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    grid-column: 1 / -1;
+    min-height: 2rem;
+    padding: 0.28rem 0.45rem;
+    border-radius: var(--radius);
+    background: rgba(16, 20, 24, 0.04);
+    font-size: 0.86rem;
+  }
+
+  .draft-board-table td:nth-child(n + 4)::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   .table-stage {
@@ -2113,6 +2627,33 @@ body.modal-open {
 
   .mini-stats {
     grid-template-columns: 1fr;
+  }
+
+  .draft-scoreboard {
+    grid-template-columns: 1fr;
+  }
+
+  .power-card {
+    grid-template-columns: 1fr;
+  }
+
+  .power-rank {
+    width: 100%;
+    height: 2.2rem;
+  }
+
+  .power-roster-flags {
+    padding-left: 0;
+  }
+
+  .draft-roster-card header {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .draft-roster-card header > strong {
+    grid-column: 1 / -1;
+    width: 100%;
+    text-align: center;
   }
 
   .score-row {

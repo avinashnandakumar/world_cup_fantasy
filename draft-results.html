@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Draft Results | World Cup Fantasy</title>
+    <meta name="description" content="Draft results, roster spend, and initial power rankings for the World Cup fantasy league.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body class="draft-page">
+    <main>
+      <section class="draft-hero" aria-labelledby="draft-title">
+        <header class="topline draft-topline">
+          <a class="brand-link" href="./index.html" aria-label="Back to home">
+            <img src="./assets/avi_assets/2026-fifa-world-cup-logo.jpg" alt="World Cup 2026 logo" class="brand-mark">
+          </a>
+          <div class="top-actions">
+            <div class="live-chip" id="draft-updated"><span></span> Loading</div>
+            <a class="refresh-button" href="./index.html">Home</a>
+          </div>
+        </header>
+
+        <div class="draft-hero-grid">
+          <section class="draft-copy">
+            <p class="eyebrow">Draft Board</p>
+            <h1 id="draft-title">Draft Results</h1>
+            <p class="draft-lede">Initial power rankings, roster economics, and every country pick from draft night.</p>
+          </section>
+          <section class="draft-scoreboard" aria-label="Draft summary">
+            <article>
+              <span>Managers</span>
+              <strong id="draft-manager-count">-</strong>
+            </article>
+            <article>
+              <span>Countries</span>
+              <strong id="draft-country-count">-</strong>
+            </article>
+            <article>
+              <span>Total Spend</span>
+              <strong id="draft-total-spend">-</strong>
+            </article>
+            <article>
+              <span>Top Price</span>
+              <strong id="draft-top-price">-</strong>
+            </article>
+          </section>
+        </div>
+      </section>
+
+      <section class="content-section draft-section" aria-labelledby="power-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="power-title">Initial Power Rankings</h2>
+          </div>
+          <span class="soft-pill draft-soft-pill">Draft-night score</span>
+        </div>
+        <div id="power-rankings" class="power-rankings"></div>
+      </section>
+
+      <section class="content-section draft-section" aria-labelledby="highlights-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="highlights-title">Draft Highlights</h2>
+          </div>
+        </div>
+        <div id="draft-highlights" class="draft-highlights"></div>
+      </section>
+
+      <section class="content-section draft-section" aria-labelledby="rosters-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="rosters-title">Rosters By Manager</h2>
+          </div>
+        </div>
+        <div id="draft-rosters" class="draft-rosters"></div>
+      </section>
+
+      <section class="content-section draft-section" aria-labelledby="board-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="board-title">Full Draft Board</h2>
+          </div>
+        </div>
+        <div class="draft-board-wrap">
+          <table class="draft-board-table">
+            <thead>
+              <tr>
+                <th>Pick</th>
+                <th>Country</th>
+                <th>Manager</th>
+                <th>Phase</th>
+                <th>Price</th>
+                <th>Current Pts</th>
+              </tr>
+            </thead>
+            <tbody id="draft-board-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./draft-results.js"></script>
+  </body>
+</html>
