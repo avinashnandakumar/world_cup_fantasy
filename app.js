@@ -118,6 +118,7 @@ init();
 
 async function init() {
   setupRefreshButton();
+  setupMatchBreakdownModal();
   model = await loadModel();
   selectedManagerId = model.standings[0]?.managerId || model.managers[0]?.managerId;
   render();
@@ -133,6 +134,33 @@ function setupRefreshButton() {
     const url = new URL(window.location.href);
     url.searchParams.set("v", String(Date.now()));
     window.location.href = url.toString();
+  });
+}
+
+function setupMatchBreakdownModal() {
+  document.addEventListener("click", (event) => {
+    const closeTarget = event.target.closest("[data-close-match-breakdown]");
+    if (closeTarget) {
+      closeMatchBreakdown();
+      return;
+    }
+
+    const card = event.target.closest(".match-card[data-final-match='true']");
+    if (!card) return;
+    openMatchBreakdown(card.dataset.matchId);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeMatchBreakdown();
+      return;
+    }
+
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const card = event.target.closest(".match-card[data-final-match='true']");
+    if (!card) return;
+    event.preventDefault();
+    openMatchBreakdown(card.dataset.matchId);
   });
 }
 
@@ -542,17 +570,20 @@ function renderMatchCard(match, options = {}) {
   const home = teamById(match.homeTeamId);
   const away = teamById(match.awayTeamId);
   const hasStarted = matchHasStarted(match);
+  const isFinal = isFinalMatch(match);
   const showHoldProjection = options.showHoldProjection && isLiveMatch(match);
+  const homeGoals = matchHomeGoals(match);
+  const awayGoals = matchAwayGoals(match);
 
   return `
-    <article class="match-card">
+    <article class="match-card ${isFinal ? "match-card-final" : ""}" data-match-id="${escapeHtml(match.matchId || "")}" data-final-match="${isFinal ? "true" : "false"}" ${isFinal ? 'tabindex="0" role="button" aria-label="Open final scoring breakdown"' : ""}>
       <div class="match-stage">
         <span>${formatMatchDate(match)}</span>
         <span class="match-status match-status-${matchStatusClass(match.status)}">${formatMatchStatusLabel(match)}</span>
       </div>
       <div class="score-row">
         <span>${countryFlag(home)} ${home?.name || match.homeTeamId || "Home"}</span>
-        <strong>${hasStarted ? `${match.homeGoals} - ${match.awayGoals}` : "TBD"}</strong>
+        <strong>${hasStarted ? `${homeGoals} - ${awayGoals}` : "TBD"}</strong>
         <span>${countryFlag(away)} ${away?.name || match.awayTeamId || "Away"}</span>
       </div>
       <div class="match-manager-points">
@@ -578,6 +609,157 @@ function renderMatchManagerRow(item) {
       </b>
     </span>
   `;
+}
+
+function openMatchBreakdown(matchId) {
+  const modal = $("match-breakdown-modal");
+  const content = $("match-breakdown-content");
+  const match = matchById(matchId);
+  if (!modal || !content || !match || !isFinalMatch(match)) return;
+
+  content.innerHTML = renderMatchBreakdown(match);
+  modal.classList.add("is-open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+
+  const closeButton = modal.querySelector(".match-breakdown-close");
+  if (closeButton) closeButton.focus();
+}
+
+function closeMatchBreakdown() {
+  const modal = $("match-breakdown-modal");
+  if (!modal || !modal.classList.contains("is-open")) return;
+
+  modal.classList.remove("is-open");
+  modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
+}
+
+function renderMatchBreakdown(match) {
+  const home = teamById(match.homeTeamId);
+  const away = teamById(match.awayTeamId);
+  const homeGoals = matchHomeGoals(match);
+  const awayGoals = matchAwayGoals(match);
+  const rows = scoringRowsForMatch(match.matchId);
+  const groupedRows = [match.homeTeamId, match.awayTeamId].map((teamId) => ({
+    teamId,
+    team: teamById(teamId),
+    total: rows
+      .filter((row) => row.teamId === teamId)
+      .reduce((sum, row) => sum + Number(row.points || 0), 0),
+    managers: scoringRowsByManager(rows.filter((row) => row.teamId === teamId))
+  }));
+
+  return `
+    <header class="match-breakdown-header">
+      <span>${escapeHtml(match.stage || "Match")} · ${escapeHtml(formatMatchDate(match))}</span>
+      <h3 id="match-breakdown-title">${escapeHtml(home?.name || match.homeTeamId)} ${homeGoals} - ${awayGoals} ${escapeHtml(away?.name || match.awayTeamId)}</h3>
+      <p>Final scoring breakdown from the ledger.</p>
+    </header>
+    <div class="match-breakdown-summary">
+      ${groupedRows.map((group) => `
+        <article>
+          <span>${countryFlag(group.team)} ${escapeHtml(group.team?.name || group.teamId)}</span>
+          <strong>${formatSignedPoints(group.total)}</strong>
+        </article>
+      `).join("")}
+    </div>
+    <div class="match-breakdown-teams">
+      ${groupedRows.map(renderMatchBreakdownTeam).join("")}
+    </div>
+  `;
+}
+
+function scoringRowsForMatch(matchId) {
+  return model.ledger
+    .filter((row) => row.matchId === matchId)
+    .sort((a, b) => {
+      if (a.teamId !== b.teamId) return String(a.teamId).localeCompare(String(b.teamId));
+      if (a.managerId !== b.managerId) return String(a.managerId).localeCompare(String(b.managerId));
+      return categorySortValue(a.category) - categorySortValue(b.category);
+    });
+}
+
+function scoringRowsByManager(rows) {
+  const groups = new Map();
+  rows.forEach((row) => {
+    if (!groups.has(row.managerId)) groups.set(row.managerId, []);
+    groups.get(row.managerId).push(row);
+  });
+  return [...groups.entries()].map(([managerId, managerRows]) => ({
+    managerId,
+    manager: managerById(managerId),
+    rows: managerRows,
+    total: managerRows.reduce((sum, row) => sum + Number(row.points || 0), 0)
+  }));
+}
+
+function renderMatchBreakdownTeam(group) {
+  return `
+    <section class="match-breakdown-team">
+      <div class="match-breakdown-team-title">
+        <strong>${countryFlag(group.team)} ${escapeHtml(group.team?.name || group.teamId)}</strong>
+        <span>${formatSignedPoints(group.total)} pts</span>
+      </div>
+      ${group.managers.length ? group.managers.map(renderMatchBreakdownManager).join("") : `
+        <p class="match-breakdown-empty">No rostered scoring rows for this team.</p>
+      `}
+    </section>
+  `;
+}
+
+function renderMatchBreakdownManager(group) {
+  return `
+    <article class="match-breakdown-manager" style="--manager-color:${managerColor(group.manager, group.managerId)}">
+      <div class="match-breakdown-manager-title">
+        <span><i></i>${escapeHtml(group.manager?.displayName || group.managerId)}</span>
+        <strong>${formatSignedPoints(group.total)}</strong>
+      </div>
+      <div class="match-breakdown-rows">
+        ${group.rows.map((row) => `
+          <div class="match-breakdown-row">
+            <span>${escapeHtml(categoryLabel(row.category))}</span>
+            <small>${escapeHtml(row.explanation || scoringFormula(row))}</small>
+            <strong>${formatSignedPoints(row.points)}</strong>
+          </div>
+        `).join("")}
+      </div>
+    </article>
+  `;
+}
+
+function categoryLabel(category) {
+  return String(category || "scoring")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function scoringFormula(row) {
+  const quantity = Number(row.quantity || 0);
+  const pointsPerUnit = Number(row.pointsPerUnit || 0);
+  if (quantity && pointsPerUnit) {
+    return `${quantity} x ${formatSignedPoints(pointsPerUnit)}`;
+  }
+  return "Ledger scoring row";
+}
+
+function categorySortValue(category) {
+  const order = ["win", "group_draw", "draw", "goal_scored", "goal_allowed", "clean_sheet", "red_card"];
+  const index = order.indexOf(String(category || ""));
+  return index === -1 ? order.length : index;
+}
+
+function formatSignedPoints(value) {
+  const numberValue = Number(value || 0);
+  return `${numberValue > 0 ? "+" : ""}${fmt(numberValue)}`;
+}
+
+function matchHomeGoals(match) {
+  return Number(match.homeGoals ?? match.homeScore ?? 0);
+}
+
+function matchAwayGoals(match) {
+  return Number(match.awayGoals ?? match.awayScore ?? 0);
 }
 
 function startTyping() {
@@ -818,15 +1000,15 @@ function projectedTotalForManager(managerId, currentTotal) {
 
 function liveFantasyPointsForTeam(match, teamId) {
   const isHome = teamId === match.homeTeamId;
-  const goalsFor = Number(isHome ? match.homeGoals : match.awayGoals) || 0;
-  const goalsAgainst = Number(isHome ? match.awayGoals : match.homeGoals) || 0;
+  const goalsFor = isHome ? matchHomeGoals(match) : matchAwayGoals(match);
+  const goalsAgainst = isHome ? matchAwayGoals(match) : matchHomeGoals(match);
   return (goalsFor * 0.5) + (goalsAgainst * -0.25);
 }
 
 function holdProjectionPointsForTeam(match, teamId) {
   const isHome = teamId === match.homeTeamId;
-  const goalsFor = Number(isHome ? match.homeGoals : match.awayGoals) || 0;
-  const goalsAgainst = Number(isHome ? match.awayGoals : match.homeGoals) || 0;
+  const goalsFor = isHome ? matchHomeGoals(match) : matchAwayGoals(match);
+  const goalsAgainst = isHome ? matchAwayGoals(match) : matchHomeGoals(match);
   let points = liveFantasyPointsForTeam(match, teamId);
 
   if (goalsFor > goalsAgainst) {
@@ -844,8 +1026,8 @@ function holdProjectionPointsForTeam(match, teamId) {
 
 function projectedBreakdownForTeam(match, teamId, redCardPoints = 0) {
   const isHome = teamId === match.homeTeamId;
-  const goalsFor = Number(isHome ? match.homeGoals : match.awayGoals) || 0;
-  const goalsAgainst = Number(isHome ? match.awayGoals : match.homeGoals) || 0;
+  const goalsFor = isHome ? matchHomeGoals(match) : matchAwayGoals(match);
+  const goalsAgainst = isHome ? matchAwayGoals(match) : matchHomeGoals(match);
   const parts = [];
 
   if (goalsFor > goalsAgainst) {
@@ -918,7 +1100,7 @@ function renderCountryMatchRow(managerId, teamId, match) {
   const opponent = teamById(opponentId);
   const hasStarted = matchHasStarted(match);
   const points = hasStarted ? displayPointsForManagerTeamInMatch(managerId, teamId, match) : null;
-  const score = hasStarted ? `${Number(match.homeGoals || 0)}-${Number(match.awayGoals || 0)}` : "TBD";
+  const score = hasStarted ? `${matchHomeGoals(match)}-${matchAwayGoals(match)}` : "TBD";
   const resultLabel = hasStarted ? `${Number(points) > 0 ? "+" : ""}${fmt(points)} pts` : formatUpcomingMatchLabel(match);
   return `
     <article class="country-match-row">
@@ -961,6 +1143,11 @@ function matchHasStarted(match) {
 function isLiveMatch(match) {
   const status = String(match.status || "").toLowerCase();
   return ["live", "in_progress", "playing", "halftime", "half_time"].includes(status);
+}
+
+function isFinalMatch(match) {
+  const status = String(match.status || "").toLowerCase();
+  return ["final", "finished", "complete"].includes(status);
 }
 
 function localDateKey(value) {

@@ -890,6 +890,19 @@ select {
   overflow: hidden;
 }
 
+.match-card-final {
+  cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.match-card-final:hover,
+.match-card-final:focus-visible {
+  border-color: rgba(246, 201, 69, 0.82);
+  box-shadow: 0 16px 34px rgba(16, 24, 32, 0.26);
+  outline: none;
+  transform: translateY(-2px);
+}
+
 .match-stage {
   display: flex;
   align-items: center;
@@ -1038,6 +1051,209 @@ select {
   color: rgba(255, 255, 255, 0.58);
   font-size: 0.66rem;
   font-weight: 800;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.match-breakdown-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  padding: 1rem;
+}
+
+.match-breakdown-modal.is-open {
+  display: grid;
+  place-items: center;
+}
+
+.match-breakdown-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(16, 24, 32, 0.66);
+  backdrop-filter: blur(8px);
+}
+
+.match-breakdown-panel {
+  position: relative;
+  z-index: 1;
+  width: min(56rem, 100%);
+  max-height: min(82vh, 48rem);
+  overflow: auto;
+  padding: clamp(0.9rem, 2vw, 1.2rem);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius);
+  background: #101820;
+  color: white;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+}
+
+.match-breakdown-close {
+  position: sticky;
+  top: 0;
+  float: right;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  cursor: pointer;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.match-breakdown-header {
+  display: grid;
+  gap: 0.22rem;
+  padding-right: 2.5rem;
+}
+
+.match-breakdown-header span,
+.match-breakdown-header p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.match-breakdown-header span {
+  color: var(--gold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.match-breakdown-header h3 {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  line-height: 1.05;
+}
+
+.match-breakdown-summary,
+.match-breakdown-teams {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+}
+
+.match-breakdown-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.match-breakdown-summary article,
+.match-breakdown-team,
+.match-breakdown-manager {
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.match-breakdown-summary article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.match-breakdown-summary span,
+.match-breakdown-team-title strong,
+.match-breakdown-manager-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-breakdown-summary strong,
+.match-breakdown-team-title span,
+.match-breakdown-manager-title strong,
+.match-breakdown-row strong {
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.match-breakdown-team {
+  padding: 0.75rem;
+}
+
+.match-breakdown-team-title,
+.match-breakdown-manager-title,
+.match-breakdown-row {
+  display: grid;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.match-breakdown-team-title,
+.match-breakdown-manager-title {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.match-breakdown-team-title {
+  margin-bottom: 0.65rem;
+}
+
+.match-breakdown-manager {
+  padding: 0.6rem;
+}
+
+.match-breakdown-manager + .match-breakdown-manager {
+  margin-top: 0.5rem;
+}
+
+.match-breakdown-manager-title span {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  font-weight: 900;
+}
+
+.match-breakdown-manager-title i {
+  width: 0.52rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  background: var(--manager-color, var(--green));
+}
+
+.match-breakdown-rows {
+  display: grid;
+  gap: 0.34rem;
+  margin-top: 0.55rem;
+}
+
+.match-breakdown-row {
+  grid-template-columns: minmax(6.5rem, 0.7fr) minmax(0, 1fr) auto;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.match-breakdown-row span {
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.match-breakdown-row small {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.74rem;
+  font-weight: 750;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.match-breakdown-empty {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.82rem;
+  font-weight: 750;
 }
 
 .roast-section {
@@ -1850,6 +2066,23 @@ select {
 
   .match-card {
     padding: 0.9rem;
+  }
+
+  .match-breakdown-modal {
+    padding: 0.65rem;
+  }
+
+  .match-breakdown-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .match-breakdown-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .match-breakdown-row small {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 }
 
