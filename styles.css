@@ -1045,6 +1045,7 @@ select {
     linear-gradient(135deg, rgba(16, 24, 32, 0.96), rgba(123, 29, 29, 0.9)),
     linear-gradient(90deg, rgba(245, 200, 91, 0.16), transparent);
   color: white;
+  overflow: hidden;
 }
 
 .roast-section .section-heading h2 {
@@ -1065,15 +1066,17 @@ select {
 }
 
 .roast-latest {
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
 }
 
 .roast-card {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.5rem;
+  align-content: start;
   min-width: 0;
-  min-height: 10rem;
-  padding: 0.85rem;
+  max-width: 100%;
+  padding: 0.75rem;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.1);
@@ -1087,57 +1090,49 @@ select {
     rgba(255, 255, 255, 0.08);
 }
 
-.roast-card-top,
 .roast-evidence,
 .roast-archive summary {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.roast-card-top {
+  min-width: 0;
 }
 
 .roast-card-top span {
   min-width: 0;
-  overflow: hidden;
   color: #f8e6a5;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 950;
-  letter-spacing: 0.08em;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.roast-card-top strong {
-  flex: 0 0 auto;
-  padding: 0.24rem 0.42rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #101820;
-  font-size: 0.66rem;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
 }
 
 .roast-card p {
   margin: 0;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-  font-weight: 900;
-  line-height: 1.12;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: clamp(0.88rem, 1.2vw, 1.02rem);
+  font-weight: 850;
+  line-height: 1.22;
 }
 
 .roast-evidence {
   align-self: end;
   color: rgba(255, 255, 255, 0.72);
-  font-size: 0.76rem;
+  font-size: 0.68rem;
   font-weight: 800;
+  line-height: 1.2;
 }
 
 .roast-evidence span {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .roast-evidence time {
@@ -1155,6 +1150,7 @@ select {
   min-height: 2.4rem;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.84);
+  font-size: 0.9rem;
   font-weight: 950;
   list-style: none;
 }
@@ -1693,11 +1689,12 @@ select {
 
   .roast-card {
     min-height: 0;
-    padding: 0.78rem;
+    padding: 0.72rem;
   }
 
   .roast-card p {
-    font-size: 1.05rem;
+    font-size: 0.9rem;
+    line-height: 1.24;
   }
 
   .roast-evidence {

@@ -430,7 +430,7 @@ function renderRoasts() {
   if (!latestBatch.length) {
     feed.innerHTML = `
       <div class="roast-empty">
-        <strong>Roast Bot is warming up.</strong>
+        <strong>Red Card Report is warming up.</strong>
         <span>Waiting for enough match chaos to start throwing tomatoes.</span>
       </div>
     `;
@@ -458,7 +458,6 @@ function renderRoastCard(roast) {
     <article class="roast-card roast-card-${severity}">
       <div class="roast-card-top">
         <span>${escapeHtml(roastTargetLabel(roast))}</span>
-        <strong>${escapeHtml(severity)}</strong>
       </div>
       <p>${escapeHtml(roast.text)}</p>
       <div class="roast-evidence">
@@ -486,7 +485,7 @@ function roastTargetLabel(roast) {
     }
   }
   if (roast.targetType === "league") return "The whole league";
-  return roast.targetId || "Roast Bot";
+  return roast.targetId || "Red Card Report";
 }
 
 function formatRoastTime(value) {
@@ -542,7 +541,6 @@ function matchSortTime(match) {
 function renderMatchCard(match, options = {}) {
   const home = teamById(match.homeTeamId);
   const away = teamById(match.awayTeamId);
-  const status = String(match.status || "scheduled").toLowerCase();
   const hasStarted = matchHasStarted(match);
   const showHoldProjection = options.showHoldProjection && isLiveMatch(match);
 
@@ -550,7 +548,7 @@ function renderMatchCard(match, options = {}) {
     <article class="match-card">
       <div class="match-stage">
         <span>${formatMatchDate(match)}</span>
-        <span class="match-status match-status-${matchStatusClass(match.status)}">${prettyStatus(match.status)}</span>
+        <span class="match-status match-status-${matchStatusClass(match.status)}">${formatMatchStatusLabel(match)}</span>
       </div>
       <div class="score-row">
         <span>${countryFlag(home)} ${home?.name || match.homeTeamId || "Home"}</span>
@@ -1251,6 +1249,42 @@ function formatShortDate(value) {
 function prettyStatus(status) {
   if (!status) return "TBD";
   return status.replaceAll("_", " ");
+}
+
+function formatMatchStatusLabel(match) {
+  const status = String(match.status || "scheduled").toLowerCase();
+  if (isLiveMatch(match)) {
+    const minute = approximateLiveMatchMinute(match);
+    return minute ? `Live - ${minute}${minute === "HT" ? "" : "m"}` : "Live";
+  }
+  if (status === "scheduled") {
+    return formatPacificKickoffTime(match);
+  }
+  return prettyStatus(match.status);
+}
+
+function formatPacificKickoffTime(match) {
+  const date = new Date(match.kickoffUtc || "");
+  if (Number.isNaN(date.getTime())) return "TBD";
+  return `${date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Los_Angeles"
+  })} PST`;
+}
+
+function approximateLiveMatchMinute(match) {
+  const kickoff = Date.parse(match.kickoffUtc || "");
+  if (Number.isNaN(kickoff)) return null;
+
+  const status = String(match.status || "").toLowerCase();
+  if (status === "halftime" || status === "half_time") return "HT";
+
+  const elapsedMinutes = Math.floor((Date.now() - kickoff) / 60000);
+  if (elapsedMinutes <= 0) return null;
+
+  const estimatedMatchMinute = elapsedMinutes > 60 ? elapsedMinutes - 15 : elapsedMinutes;
+  return Math.min(Math.max(estimatedMatchMinute, 1), 120);
 }
 
 function matchStatusClass(status) {
