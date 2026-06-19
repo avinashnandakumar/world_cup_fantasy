@@ -313,11 +313,11 @@ function renderUpdated() {
 }
 
 function renderStandings() {
-  const sorted = sortedStandings();
+  const sorted = standingsForMainTable();
   const rankMovement = rankMovementByManager();
   $("standings-body").innerHTML = sorted.map((standing) => {
     const manager = managerById(standing.managerId);
-    const totals = categoryTotalsForManager(standing.managerId);
+    const totals = settledCategoryTotalsForManager(standing.managerId);
     const gamesPlayed = gamesPlayedForManager(standing.managerId);
     const projectedTotal = projectedTotalForManager(standing.managerId, standing.totalPoints);
     const projectionLine = projectedTotal === null ? "" : `
@@ -359,6 +359,22 @@ function renderStandings() {
       </tr>
     `;
   }).join("");
+}
+
+function standingsForMainTable() {
+  return rosterManagersInOrder()
+    .map((standing) => ({
+      ...standing,
+      totalPoints: settledTotalForManager(standing.managerId)
+    }))
+    .sort((a, b) => {
+      if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+      return String(a.displayName || a.managerId).localeCompare(String(b.displayName || b.managerId));
+    })
+    .map((standing, index) => ({
+      ...standing,
+      rank: index + 1
+    }));
 }
 
 function renderFlags() {
@@ -980,7 +996,7 @@ function redCardPointsForManagerTeamInMatch(managerId, teamId, matchId) {
 
 function projectedTotalForManager(managerId, currentTotal) {
   let hasLiveMatch = false;
-  const liveDelta = model.matches
+  const liveProjection = model.matches
     .filter((match) => isLiveMatch(match))
     .reduce((sum, match) => {
       return sum + ["homeTeamId", "awayTeamId"].reduce((matchSum, sideKey) => {
@@ -988,14 +1004,13 @@ function projectedTotalForManager(managerId, currentTotal) {
         if (!managersForTeam(teamId).includes(managerId)) return matchSum;
         hasLiveMatch = true;
 
-        const currentPoints = displayPointsForManagerTeamInMatch(managerId, teamId, match);
         const projectedPoints = holdProjectionPointsForTeam(match, teamId)
           + redCardPointsForManagerTeamInMatch(managerId, teamId, match.matchId);
-        return matchSum + projectedPoints - currentPoints;
+        return matchSum + projectedPoints;
       }, 0);
     }, 0);
 
-  return hasLiveMatch ? Number(currentTotal || 0) + liveDelta : null;
+  return hasLiveMatch ? Number(currentTotal || 0) + liveProjection : null;
 }
 
 function liveFantasyPointsForTeam(match, teamId) {
@@ -1216,6 +1231,10 @@ function categoryTotalsForManager(managerId) {
   return summarizeRows(model.ledger.filter((row) => row.managerId === managerId));
 }
 
+function settledCategoryTotalsForManager(managerId) {
+  return summarizeRows(settledLedgerRows().filter((row) => row.managerId === managerId));
+}
+
 function categoryTotalsForTeam(teamId) {
   return summarizeRows(model.ledger.filter((row) => row.teamId === teamId));
 }
@@ -1230,6 +1249,20 @@ function totalPointsForManager(managerId) {
   return model.ledger
     .filter((row) => row.managerId === managerId)
     .reduce((sum, row) => sum + Number(row.points || 0), 0);
+}
+
+function settledTotalForManager(managerId) {
+  return settledLedgerRows()
+    .filter((row) => row.managerId === managerId)
+    .reduce((sum, row) => sum + Number(row.points || 0), 0);
+}
+
+function settledLedgerRows() {
+  return model.ledger.filter((row) => {
+    if (!row.matchId) return true;
+    const match = matchById(row.matchId);
+    return match ? isFinalMatch(match) : false;
+  });
 }
 
 function summarizeRows(rows) {
