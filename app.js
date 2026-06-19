@@ -292,6 +292,8 @@ function renderStandings() {
     const totals = categoryTotalsForManager(standing.managerId);
     const gamesPlayed = gamesPlayedForManager(standing.managerId);
     const projectedTotal = projectedTotalForManager(standing.managerId, standing.totalPoints);
+    const projectionLine = projectedTotal === null ? "" : `
+          <span class="total-points-projected">Proj: ${fmt(projectedTotal)}</span>`;
     const movement = rankMovement[standing.managerId];
 
     return `
@@ -309,7 +311,7 @@ function renderStandings() {
         <td data-label="GP">${gamesPlayed}</td>
         <td data-label="Total" class="total-points">
           <span class="total-points-current">${fmt(standing.totalPoints)}</span>
-          <span class="total-points-projected">${fmt(projectedTotal)} projected</span>
+          ${projectionLine}
         </td>
         <td data-label="Wins">${fmt(totals.wins)}</td>
         <td data-label="Goals">${fmt(totals.goals)}</td>
@@ -797,12 +799,14 @@ function redCardPointsForManagerTeamInMatch(managerId, teamId, matchId) {
 }
 
 function projectedTotalForManager(managerId, currentTotal) {
+  let hasLiveMatch = false;
   const liveDelta = model.matches
     .filter((match) => isLiveMatch(match))
     .reduce((sum, match) => {
       return sum + ["homeTeamId", "awayTeamId"].reduce((matchSum, sideKey) => {
         const teamId = match[sideKey];
         if (!managersForTeam(teamId).includes(managerId)) return matchSum;
+        hasLiveMatch = true;
 
         const currentPoints = displayPointsForManagerTeamInMatch(managerId, teamId, match);
         const projectedPoints = holdProjectionPointsForTeam(match, teamId)
@@ -811,7 +815,7 @@ function projectedTotalForManager(managerId, currentTotal) {
       }, 0);
     }, 0);
 
-  return Number(currentTotal || 0) + liveDelta;
+  return hasLiveMatch ? Number(currentTotal || 0) + liveDelta : null;
 }
 
 function liveFantasyPointsForTeam(match, teamId) {
