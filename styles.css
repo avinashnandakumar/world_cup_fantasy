@@ -417,6 +417,24 @@ h1 {
   font-size: 1.25rem;
 }
 
+.total-points-current,
+.total-points-projected {
+  display: block;
+}
+
+.total-points-current {
+  line-height: 1;
+}
+
+.total-points-projected {
+  margin-top: 0.16rem;
+  color: #6a554a;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
 .negative {
   color: #bb2c2c;
 }
