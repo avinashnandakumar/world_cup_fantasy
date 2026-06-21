@@ -17,6 +17,7 @@ async function initGroupStandings() {
   renderGroupUpdated();
   renderGroupSummary();
   renderGroupTables();
+  renderProjectedBracket();
 }
 
 async function loadGroupJson(path) {
@@ -34,14 +35,7 @@ async function loadGroupModel() {
           generatedAt: snapshot.meta.generatedAtUtc || new Date().toISOString(),
           lastExternalSyncAtUtc: snapshot.meta.lastExternalSyncAtUtc || ""
         },
-        teams: (snapshot.teams || []).map((team) => ({
-          teamId: team.teamId,
-          name: team.countryName || team.name || team.teamId,
-          shortName: team.shortName || team.teamId,
-          flagEmoji: team.flagEmoji || "",
-          group: team.group,
-          groupRank: team.groupRank
-        })),
+        teams: (snapshot.teams || []).map(normalizeGroupTeam),
         matches: (snapshot.matches || []).map(normalizeGroupMatch)
       };
     }
@@ -56,7 +50,7 @@ async function loadGroupModel() {
         generatedAt: snapshot.generatedAt || new Date().toISOString(),
         lastExternalSyncAtUtc: snapshot.lastExternalSyncAtUtc || snapshot.data?.league?.lastExternalSyncAtUtc || ""
       },
-      teams: teamsFile.teams || [],
+      teams: (teamsFile.teams || []).map(normalizeGroupTeam),
       matches: (matchesFile.matches || []).map(normalizeGroupMatch)
     };
   } catch (error) {
@@ -66,10 +60,34 @@ async function loadGroupModel() {
     ]);
     return {
       meta: { generatedAt: new Date().toISOString(), lastExternalSyncAtUtc: "" },
-      teams: teamsFile.teams || [],
+      teams: (teamsFile.teams || []).map(normalizeGroupTeam),
       matches: (matchesFile.matches || []).map(normalizeGroupMatch)
     };
   }
+}
+
+function normalizeGroupTeam(team) {
+  return {
+    ...team,
+    teamId: team.teamId,
+    name: team.countryName || team.name || team.teamId,
+    shortName: team.shortName || "",
+    flagEmoji: correctedWorldCupFlag(team.teamId, team.flagEmoji),
+    group: correctedWorldCupGroup(team.teamId, team.group),
+    groupRank: team.groupRank
+  };
+}
+
+function correctedWorldCupGroup(teamId, fallbackGroup) {
+  return window.worldCup2026GroupForTeam
+    ? window.worldCup2026GroupForTeam(teamId, fallbackGroup)
+    : fallbackGroup || "";
+}
+
+function correctedWorldCupFlag(teamId, fallbackFlag) {
+  return window.worldCup2026FlagForTeam
+    ? window.worldCup2026FlagForTeam(teamId, fallbackFlag)
+    : fallbackFlag || "";
 }
 
 function normalizeGroupMatch(match) {
@@ -117,9 +135,12 @@ function renderGroupTables() {
         </thead>
         <tbody>
           ${table.rows.map((row) => `
-            <tr class="${row.rank <= 2 && table.hasStarted ? "is-qualifying" : ""}">
+            <tr class="${groupRowClass(row)}">
               <td>${row.rank}</td>
-              <td>${groupCountryFlag(row.team)} ${escapeGroupHtml(row.team?.name || row.teamId)}</td>
+              <td>
+                <span class="group-country-name">${groupCountryFlag(row.team)} ${escapeGroupHtml(row.team?.name || row.teamId)}</span>
+                ${row.qualifiesForKnockouts ? `<span class="ko-badge">${row.qualificationType === "third" ? "3rd KO" : "KO"}</span>` : ""}
+              </td>
               <td>${row.points}</td>
               <td>${formatGoalDifference(row.goalsFor - row.goalsAgainst)}</td>
               <td>${row.goalsFor}</td>
@@ -127,6 +148,27 @@ function renderGroupTables() {
           `).join("")}
         </tbody>
       </table>
+    </article>
+  `).join("");
+}
+
+function groupRowClass(row) {
+  if (!row.qualifiesForKnockouts) return "";
+  return row.qualificationType === "third" ? "is-qualifying is-third-qualifying" : "is-qualifying";
+}
+
+function renderProjectedBracket() {
+  const node = document.getElementById("projected-bracket-grid");
+  if (!node) return;
+  const bracket = projectedKnockoutBracket(projectedGroupTables());
+  node.innerHTML = bracket.map((match) => `
+    <article class="bracket-match-card">
+      <span>Match ${match.matchNumber}</span>
+      <div>
+        <strong>${escapeGroupHtml(match.home)}</strong>
+        <em>vs</em>
+        <strong>${escapeGroupHtml(match.away)}</strong>
+      </div>
     </article>
   `).join("");
 }
@@ -142,7 +184,7 @@ function projectedGroupTables() {
   groupModel.matches
     .filter((match) => isGroupStageMatch(match) && matchHasStarted(match))
     .forEach((match) => {
-      const group = match.group || teamById(match.homeTeamId)?.group || teamById(match.awayTeamId)?.group;
+      const group = groupForMatch(match);
       if (!group) return;
       if (!groups.has(group)) groups.set(group, new Map());
       const table = groups.get(group);
@@ -153,13 +195,14 @@ function projectedGroupTables() {
       applyGroupResult(table.get(match.awayTeamId), match.awayGoals, match.homeGoals);
     });
 
-  return [...groups.entries()].map(([group, table]) => {
+  const tables = [...groups.entries()].map(([group, table]) => {
     const hasStarted = [...table.values()].some((row) => row.played > 0);
     const hasSourceRanks = [...table.values()].some((row) => Number.isFinite(row.sourceRank));
     const rows = [...table.values()]
       .sort(hasStarted ? sortGroupStandingRows : sortSourceGroupRankRows)
       .map((row, index) => ({
         ...row,
+        group,
         rank: hasStarted || !Number.isFinite(row.sourceRank) ? index + 1 : row.sourceRank
       }));
     return {
@@ -168,6 +211,7 @@ function projectedGroupTables() {
       rows
     };
   });
+  return markProjectedKnockoutQualifiers(tables);
 }
 
 function groupStandingRow(team) {
@@ -206,6 +250,85 @@ function sortSourceGroupRankRows(a, b) {
   return String(a.team?.name || a.teamId).localeCompare(String(b.team?.name || b.teamId));
 }
 
+function groupForMatch(match) {
+  const homeGroup = correctedWorldCupGroup(match.homeTeamId, teamById(match.homeTeamId)?.group);
+  const awayGroup = correctedWorldCupGroup(match.awayTeamId, teamById(match.awayTeamId)?.group);
+  if (homeGroup && homeGroup === awayGroup) return homeGroup;
+  return correctedWorldCupGroup(match.homeTeamId, match.group)
+    || correctedWorldCupGroup(match.awayTeamId, match.group)
+    || match.group
+    || "";
+}
+
+function markProjectedKnockoutQualifiers(tables) {
+  const thirdPlaceQualifiers = new Set(bestThirdPlaceRows(tables).slice(0, 8).map((row) => row.teamId));
+  return tables.map((table) => ({
+    ...table,
+    rows: table.rows.map((row) => {
+      const automatic = table.hasStarted && row.rank <= 2;
+      const third = table.hasStarted && row.rank === 3 && thirdPlaceQualifiers.has(row.teamId);
+      return {
+        ...row,
+        qualifiesForKnockouts: automatic || third,
+        qualificationType: automatic ? "auto" : third ? "third" : ""
+      };
+    })
+  }));
+}
+
+function bestThirdPlaceRows(tables) {
+  return tables
+    .filter((table) => table.hasStarted)
+    .map((table) => table.rows.find((row) => row.rank === 3))
+    .filter(Boolean)
+    .sort(sortThirdPlaceRows);
+}
+
+function sortThirdPlaceRows(a, b) {
+  return sortGroupStandingRows(a, b);
+}
+
+function projectedKnockoutBracket(tables) {
+  const groupRows = new Map(tables.map((table) => [table.group, table.rows]));
+  const thirdRows = bestThirdPlaceRows(tables).slice(0, 8);
+  const usedThirdGroups = new Set();
+  const thirdByGroup = new Map(thirdRows.map((row) => [row.group, row]));
+  const matchups = [
+    [73, seedLabel(groupRows, "A", 2), seedLabel(groupRows, "B", 2)],
+    [74, seedLabel(groupRows, "E", 1), thirdSeedLabel(["A", "B", "C", "D", "F"], thirdByGroup, usedThirdGroups)],
+    [75, seedLabel(groupRows, "F", 1), seedLabel(groupRows, "C", 2)],
+    [76, seedLabel(groupRows, "C", 1), seedLabel(groupRows, "F", 2)],
+    [77, seedLabel(groupRows, "I", 1), thirdSeedLabel(["C", "D", "F", "G", "H"], thirdByGroup, usedThirdGroups)],
+    [78, seedLabel(groupRows, "E", 2), seedLabel(groupRows, "I", 2)],
+    [79, seedLabel(groupRows, "A", 1), thirdSeedLabel(["C", "E", "F", "H", "I"], thirdByGroup, usedThirdGroups)],
+    [80, seedLabel(groupRows, "L", 1), thirdSeedLabel(["E", "H", "I", "J", "K"], thirdByGroup, usedThirdGroups)],
+    [81, seedLabel(groupRows, "D", 1), thirdSeedLabel(["B", "E", "F", "I", "J"], thirdByGroup, usedThirdGroups)],
+    [82, seedLabel(groupRows, "G", 1), thirdSeedLabel(["A", "E", "H", "I", "J"], thirdByGroup, usedThirdGroups)],
+    [83, seedLabel(groupRows, "K", 2), seedLabel(groupRows, "L", 2)],
+    [84, seedLabel(groupRows, "H", 1), seedLabel(groupRows, "J", 2)],
+    [85, seedLabel(groupRows, "B", 1), thirdSeedLabel(["E", "F", "G", "I", "J"], thirdByGroup, usedThirdGroups)],
+    [86, seedLabel(groupRows, "J", 1), seedLabel(groupRows, "H", 2)],
+    [87, seedLabel(groupRows, "K", 1), thirdSeedLabel(["D", "E", "I", "J", "L"], thirdByGroup, usedThirdGroups)],
+    [88, seedLabel(groupRows, "D", 2), seedLabel(groupRows, "G", 2)]
+  ];
+
+  return matchups.map(([matchNumber, home, away]) => ({ matchNumber, home, away }));
+}
+
+function seedLabel(groupRows, group, rank) {
+  const row = groupRows.get(group)?.find((item) => item.rank === rank);
+  const seed = rank === 1 ? "W" : "R";
+  return row ? `${seed}${group} ${row.team?.name || row.teamId}` : `${seed}${group}`;
+}
+
+function thirdSeedLabel(eligibleGroups, thirdByGroup, usedThirdGroups) {
+  const group = eligibleGroups.find((candidate) => thirdByGroup.has(candidate) && !usedThirdGroups.has(candidate));
+  if (!group) return `3rd ${eligibleGroups.join("/")}`;
+  usedThirdGroups.add(group);
+  const row = thirdByGroup.get(group);
+  return `3${group} ${row.team?.name || row.teamId}`;
+}
+
 function teamById(teamId) {
   return groupModel.teams.find((team) => team.teamId === teamId) || {};
 }
@@ -220,7 +343,7 @@ function matchHasStarted(match) {
 }
 
 function groupCountryFlag(team) {
-  return team?.flagEmoji || team?.shortName || "";
+  return team?.flagEmoji || "";
 }
 
 function formatGoalDifference(value) {

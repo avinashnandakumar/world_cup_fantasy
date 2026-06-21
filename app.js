@@ -195,7 +195,7 @@ async function loadModel() {
       standings: snapshot.data?.standings || [],
       managers: league.managers || [],
       rosters: league.rosters || [],
-      teams: teams.teams || [],
+      teams: (teams.teams || []).map(normalizeDashboardTeam),
       matches: matches.matches || [],
       ledger: ledger.ledger || [],
       roasts: normalizeRoasts(snapshot.data?.roasts)
@@ -226,16 +226,7 @@ function normalizeAppsScriptSnapshot(snapshot) {
       colorToken: colorTokenFromValue(manager.color)
     })),
     rosters: snapshot.rosters || [],
-    teams: (snapshot.teams || []).map((team) => ({
-      teamId: team.teamId,
-      name: team.countryName || team.name || team.teamId,
-      flagEmoji: team.flagEmoji || "",
-      shortName: team.flagEmoji || countryFlags[team.teamId] || (team.countryName || team.teamId || "WC").slice(0, 3).toUpperCase(),
-      group: team.group,
-      status: String(team.status || "scheduled").toLowerCase(),
-      qualifiedForKnockouts: team.qualifiedForKnockouts === true || team.qualifiedForKnockouts === "TRUE",
-      wonGroup: team.wonGroup === true || team.wonGroup === "TRUE"
-    })),
+    teams: (snapshot.teams || []).map(normalizeDashboardTeam),
     matches: (snapshot.matches || []).map((match) => ({
       matchId: match.matchId,
       stage: match.stage,
@@ -257,6 +248,32 @@ function normalizeRoasts(roasts) {
     latestBatch: normalizeRoastRows(source.latestBatch),
     todayArchive: normalizeRoastRows(source.todayArchive)
   };
+}
+
+function normalizeDashboardTeam(team) {
+  return {
+    teamId: team.teamId,
+    name: team.countryName || team.name || team.teamId,
+    flagEmoji: correctedWorldCupFlag(team.teamId, team.flagEmoji),
+    shortName: correctedWorldCupFlag(team.teamId, team.flagEmoji) || countryFlags[team.teamId] || (team.countryName || team.teamId || "WC").slice(0, 3).toUpperCase(),
+    group: correctedWorldCupGroup(team.teamId, team.group),
+    groupRank: team.groupRank,
+    status: String(team.status || "scheduled").toLowerCase(),
+    qualifiedForKnockouts: team.qualifiedForKnockouts === true || team.qualifiedForKnockouts === "TRUE",
+    wonGroup: team.wonGroup === true || team.wonGroup === "TRUE"
+  };
+}
+
+function correctedWorldCupGroup(teamId, fallbackGroup) {
+  return window.worldCup2026GroupForTeam
+    ? window.worldCup2026GroupForTeam(teamId, fallbackGroup)
+    : fallbackGroup || "";
+}
+
+function correctedWorldCupFlag(teamId, fallbackFlag) {
+  return window.worldCup2026FlagForTeam
+    ? window.worldCup2026FlagForTeam(teamId, fallbackFlag)
+    : fallbackFlag || "";
 }
 
 function normalizeRoastRows(rows) {
@@ -1507,10 +1524,11 @@ function renderProjectedBonuses() {
 }
 
 function renderProjectedBonusCountry(detail) {
+  const qualifierLabel = detail.qualificationType === "third" ? "Best 3rd" : detail.rankLabel;
   return `
     <span class="projected-bonus-country">
       <span>${countryFlag(detail.team)} ${escapeHtml(detail.team?.name || detail.teamId)}</span>
-      <em>Group ${escapeHtml(detail.group || "-")} · ${detail.rankLabel}</em>
+      <em>Group ${escapeHtml(detail.group || "-")} · ${qualifierLabel}</em>
       <strong>${formatProjectedBonus(detail.bonus)}</strong>
     </span>
   `;
@@ -1529,7 +1547,8 @@ function projectedBonusForManager(managerId) {
         group: team.group,
         bonus: Number(projection.bonus || 0),
         rank: projection.rank || null,
-        rankLabel: projection.rank ? `Rank ${projection.rank}` : "No table"
+        rankLabel: projection.rank ? `Rank ${projection.rank}` : "No table",
+        qualificationType: projection.qualificationType || ""
       };
     })
     .sort((a, b) => {
@@ -1548,11 +1567,12 @@ function projectedBonusByTeam() {
   projectedGroupTables().forEach((table) => {
     table.rows.forEach((row) => {
       const bonus = table.hasStarted
-        ? (row.rank === 1 ? 1.5 : row.rank === 2 ? 0.5 : 0)
+        ? (row.qualifiesForKnockouts ? 0.5 : 0) + (row.rank === 1 ? 1 : 0)
         : 0;
       bonusByTeam.set(row.teamId, {
         bonus,
-        rank: table.hasStarted ? row.rank : null
+        rank: table.hasStarted ? row.rank : null,
+        qualificationType: table.hasStarted ? row.qualificationType : ""
       });
     });
   });
@@ -1570,7 +1590,7 @@ function projectedGroupTables() {
   model.matches
     .filter((match) => isGroupStageMatch(match) && matchHasStarted(match))
     .forEach((match) => {
-      const group = match.group || teamById(match.homeTeamId)?.group || teamById(match.awayTeamId)?.group;
+      const group = groupForMatch(match);
       if (!group) return;
       if (!groups.has(group)) groups.set(group, new Map());
       const table = groups.get(group);
@@ -1581,13 +1601,14 @@ function projectedGroupTables() {
       applyGroupResult(table.get(match.awayTeamId), matchAwayGoals(match), matchHomeGoals(match));
     });
 
-  return [...groups.entries()].map(([group, table]) => {
+  const tables = [...groups.entries()].map(([group, table]) => {
     const hasStarted = [...table.values()].some((row) => row.played > 0);
     const hasSourceRanks = [...table.values()].some((row) => Number.isFinite(row.sourceRank));
     const rows = [...table.values()]
       .sort(hasStarted ? sortGroupStandingRows : sortSourceGroupRankRows)
       .map((row, index) => ({
         ...row,
+        group,
         rank: hasStarted || !Number.isFinite(row.sourceRank) ? index + 1 : row.sourceRank
       }));
     return {
@@ -1596,6 +1617,7 @@ function projectedGroupTables() {
       rows
     };
   });
+  return markProjectedKnockoutQualifiers(tables);
 }
 
 function groupStandingRow(team) {
@@ -1632,6 +1654,44 @@ function sortSourceGroupRankRows(a, b) {
   const rankB = Number.isFinite(b.sourceRank) ? b.sourceRank : Number.MAX_SAFE_INTEGER;
   if (rankA !== rankB) return rankA - rankB;
   return String(a.team?.name || a.teamId).localeCompare(String(b.team?.name || b.teamId));
+}
+
+function groupForMatch(match) {
+  const homeGroup = correctedWorldCupGroup(match.homeTeamId, teamById(match.homeTeamId)?.group);
+  const awayGroup = correctedWorldCupGroup(match.awayTeamId, teamById(match.awayTeamId)?.group);
+  if (homeGroup && homeGroup === awayGroup) return homeGroup;
+  return correctedWorldCupGroup(match.homeTeamId, match.group)
+    || correctedWorldCupGroup(match.awayTeamId, match.group)
+    || match.group
+    || "";
+}
+
+function markProjectedKnockoutQualifiers(tables) {
+  const thirdPlaceQualifiers = new Set(bestThirdPlaceRows(tables).slice(0, 8).map((row) => row.teamId));
+  return tables.map((table) => ({
+    ...table,
+    rows: table.rows.map((row) => {
+      const automatic = table.hasStarted && row.rank <= 2;
+      const third = table.hasStarted && row.rank === 3 && thirdPlaceQualifiers.has(row.teamId);
+      return {
+        ...row,
+        qualifiesForKnockouts: automatic || third,
+        qualificationType: automatic ? "auto" : third ? "third" : ""
+      };
+    })
+  }));
+}
+
+function bestThirdPlaceRows(tables) {
+  return tables
+    .filter((table) => table.hasStarted)
+    .map((table) => table.rows.find((row) => row.rank === 3))
+    .filter(Boolean)
+    .sort(sortThirdPlaceRows);
+}
+
+function sortThirdPlaceRows(a, b) {
+  return sortGroupStandingRows(a, b);
 }
 
 function isGroupStageMatch(match) {

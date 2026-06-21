@@ -2163,11 +2163,97 @@ body.modal-open {
 }
 
 .group-table .is-qualifying {
-  background: rgba(24, 165, 102, 0.1);
+  background: rgba(24, 165, 102, 0.12);
 }
 
 .group-table .is-qualifying td:first-child {
   color: #0c6b45;
+}
+
+.group-table .is-third-qualifying {
+  background: rgba(224, 167, 47, 0.16);
+}
+
+.group-country-name {
+  display: inline-block;
+  max-width: calc(100% - 3.8rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.ko-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4rem;
+  margin-left: 0.28rem;
+  padding: 0.12rem 0.25rem;
+  border-radius: 999px;
+  background: rgba(24, 165, 102, 0.15);
+  color: #0c6b45;
+  font-size: 0.58rem;
+  font-weight: 950;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.is-third-qualifying .ko-badge {
+  background: rgba(224, 167, 47, 0.2);
+  color: #8a5a00;
+}
+
+.projected-bracket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.7rem;
+}
+
+.bracket-match-card {
+  min-width: 0;
+  padding: 0.78rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 30px rgba(16, 20, 24, 0.07);
+}
+
+.bracket-match-card > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bracket-match-card div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.bracket-match-card strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bracket-match-card strong:last-child {
+  text-align: right;
+}
+
+.bracket-match-card em {
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .scoring-grid {
