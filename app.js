@@ -331,7 +331,7 @@ function renderStandings() {
           <span class="player-cell">
             <span class="player-swatch"></span>
             <span class="player-name-row">
-              <strong class="player-name">${standing.displayName}</strong>
+              <a class="player-name" href="#${managerRosterAnchorId(standing.managerId)}">${escapeHtml(standing.displayName)}</a>
               ${renderRankMovementBadge(movement)}
             </span>
           </span>
@@ -408,7 +408,7 @@ function renderCountryBreakdown() {
       });
 
     return `
-      <article class="roster-card" style="--manager-color:${managerColor(manager, managerId)}">
+      <article id="${managerRosterAnchorId(managerId)}" class="roster-card" style="--manager-color:${managerColor(manager, managerId)}">
         <header class="roster-card-header">
           <span class="player-swatch"></span>
           <div>
@@ -425,6 +425,10 @@ function renderCountryBreakdown() {
       </article>
     `;
   }).join("");
+}
+
+function managerRosterAnchorId(managerId) {
+  return `roster-${String(managerId || "manager").replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 }
 
 function renderRosterCountryDetails(managerId, roster, team, points) {

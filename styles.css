@@ -381,8 +381,19 @@ h1 {
 
 .player-name {
   display: block;
+  color: inherit;
   font-size: 1rem;
+  font-weight: 900;
   overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.player-name:hover,
+.player-name:focus-visible {
+  color: var(--manager-color, var(--green));
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 0.18rem;
 }
 
 .rank-movement {
@@ -520,11 +531,17 @@ select {
 
 .roster-card {
   min-width: 0;
+  scroll-margin-top: 1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 12px 34px rgba(16, 20, 24, 0.08);
   overflow: hidden;
+}
+
+.roster-card:target {
+  border-color: color-mix(in srgb, var(--manager-color, var(--green)) 54%, white);
+  box-shadow: 0 16px 42px rgba(16, 20, 24, 0.16);
 }
 
 .roster-card-header {
