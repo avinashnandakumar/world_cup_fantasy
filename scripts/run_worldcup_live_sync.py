@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +23,7 @@ SYNC_SCRIPT = REPO_ROOT / "scripts" / "sync_worldcup_free.py"
 DEFAULT_GROUP_LIVE_MINUTES = 150
 DEFAULT_KNOCKOUT_LIVE_MINUTES = 240
 DEFAULT_MAX_POLL_MINUTES = 720
+ESPN_SCOREBOARD_TZ = ZoneInfo("America/New_York")
 
 
 @dataclass(frozen=True)
@@ -229,7 +231,7 @@ def active_matches(
 
 
 def espn_date_for_match(match: MatchWindow) -> str:
-    return match.kickoff_utc.astimezone().strftime("%Y%m%d")
+    return match.kickoff_utc.astimezone(ESPN_SCOREBOARD_TZ).strftime("%Y%m%d")
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

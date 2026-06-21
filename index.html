@@ -35,10 +35,12 @@
             <nav class="jump-row" aria-label="Dashboard sections">
               <a href="#standings">Standings</a>
               <a href="./draft-results.html">Draft Results</a>
+              <a href="./group-standings.html">Group Standings</a>
               <a href="#countries">Rosters</a>
               <a href="#matches">Today</a>
               <a href="#roast-bot">Red Card Report</a>
               <a href="#timeline">Timeline</a>
+              <a href="#projected-bonuses">Projected Bonuses</a>
               <a href="#all-games">All games</a>
               <a href="#scoring">Scoring</a>
             </nav>
@@ -55,15 +57,16 @@
               <table class="fantasy-table">
                 <thead>
                   <tr>
-                    <th>Rank</th>
+                    <th title="Rank">RK</th>
                     <th>Player</th>
                     <th>GP</th>
                     <th>Total</th>
-                    <th>Wins</th>
-                    <th>Goals</th>
-                    <th>Defense</th>
-                    <th>Bonuses</th>
-                    <th>Cards</th>
+                    <th title="Projected bonus">Proj Bon</th>
+                    <th title="Wins">W</th>
+                    <th title="Goals">G</th>
+                    <th title="Defense">Def</th>
+                    <th title="Bonuses">Bonus</th>
+                    <th title="Cards">Cards</th>
                   </tr>
                 </thead>
                 <tbody id="standings-body"></tbody>
@@ -111,6 +114,16 @@
           <span class="soft-pill">Cumulative</span>
         </div>
         <div id="points-timeline" class="points-timeline"></div>
+      </section>
+
+      <section id="projected-bonuses" class="content-section projected-bonus-section" aria-labelledby="projected-bonus-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="projected-bonus-title">Projected Bonuses</h2>
+          </div>
+          <span class="soft-pill">Group table</span>
+        </div>
+        <div id="projected-bonus-grid" class="projected-bonus-grid"></div>
       </section>
 
       <section id="scoring" class="content-section scoring-section" aria-labelledby="scoring-title">

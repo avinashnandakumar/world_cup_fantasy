@@ -289,6 +289,7 @@ function render() {
   renderMatches();
   renderRoasts();
   renderPointsTimeline();
+  renderProjectedBonuses();
   renderAllGames();
 }
 
@@ -319,6 +320,7 @@ function renderStandings() {
     const manager = managerById(standing.managerId);
     const totals = settledCategoryTotalsForManager(standing.managerId);
     const gamesPlayed = gamesPlayedForManager(standing.managerId);
+    const projectedBonus = projectedBonusForManager(standing.managerId).total;
     const projectedTotal = projectedTotalForManager(standing.managerId, standing.totalPoints);
     const projectionLine = projectedTotal === null ? "" : `
           <span class="total-points-projected">Proj: ${fmt(projectedTotal)}</span>`;
@@ -341,6 +343,7 @@ function renderStandings() {
           <span class="total-points-current">${fmt(standing.totalPoints)}</span>
           ${projectionLine}
         </td>
+        <td data-label="Proj Bonus" class="projected-bonus-points">${formatProjectedBonus(projectedBonus)}</td>
         <td data-label="Wins">${fmt(totals.wins)}</td>
         <td data-label="Goals">${fmt(totals.goals)}</td>
         <td data-label="Defense" class="${totals.defense < 0 ? "negative" : ""}">${fmt(totals.defense)}</td>
@@ -349,6 +352,7 @@ function renderStandings() {
         <td class="mobile-standings-strip-cell" aria-label="Standings stat summary">
           <span class="mobile-standings-strip">
             <span class="stat-chip"><span>GP</span>${gamesPlayed}</span>
+            <span class="stat-chip"><span>PB</span>${formatProjectedBonus(projectedBonus)}</span>
             <span class="stat-chip"><span>W</span>${fmt(totals.wins)}</span>
             <span class="stat-chip"><span>G</span>${fmt(totals.goals)}</span>
             <span class="stat-chip ${totals.defense < 0 ? "negative" : ""}"><span>DEF</span>${fmt(totals.defense)}</span>
@@ -434,7 +438,8 @@ function managerRosterAnchorId(managerId) {
 function renderRosterCountryDetails(managerId, roster, team, points) {
   const matches = matchesForTeam(roster.teamId);
   const nextMatch = nextScheduledMatchForTeam(roster.teamId);
-  const nextMatchLabel = nextMatch ? `Next ${formatUpcomingMatchLabel(nextMatch)}` : "No upcoming matches";
+  const gameDayLabel = nextMatch ? formatUpcomingMatchLabel(nextMatch) : "No upcoming games";
+  const groupPlace = groupPlaceLabel(roster.teamId);
   return `
     <details class="roster-country-detail">
       <summary class="roster-country-row">
@@ -442,7 +447,7 @@ function renderRosterCountryDetails(managerId, roster, team, points) {
         <span class="flag-square flag-emoji">${countryFlag(team)}</span>
         <span class="roster-country-name">
           <strong>${team?.name || roster.teamId}</strong>
-          <span>Group ${team?.group || "-"} · ${nextMatchLabel}</span>
+          <span>${gameDayLabel} · ${groupPlace}</span>
         </span>
         <strong class="country-point-number">${fmt(points)}</strong>
       </summary>
@@ -1462,6 +1467,195 @@ function renderPointsTimeline() {
       `).join("")}
     </div>
   `;
+}
+
+function renderProjectedBonuses() {
+  const node = $("projected-bonus-grid");
+  if (!node) return;
+
+  const rows = rosterManagersInOrder()
+    .map((manager) => ({
+      ...manager,
+      projection: projectedBonusForManager(manager.managerId)
+    }))
+    .sort((a, b) => {
+      if (b.projection.total !== a.projection.total) return b.projection.total - a.projection.total;
+      return String(a.displayName || a.managerId).localeCompare(String(b.displayName || b.managerId));
+    });
+
+  node.innerHTML = rows.map((row) => {
+    const manager = managerById(row.managerId);
+    const contributors = row.projection.details.filter((detail) => detail.bonus > 0);
+    return `
+      <article class="projected-bonus-card" style="--manager-color:${managerColor(manager, row.managerId)}">
+        <header>
+          <span class="player-swatch"></span>
+          <div>
+            <h3>${escapeHtml(row.displayName || row.managerId)}</h3>
+            <p>${contributors.length} projected bonus countr${contributors.length === 1 ? "y" : "ies"}</p>
+          </div>
+          <strong>${formatProjectedBonus(row.projection.total)}</strong>
+        </header>
+        <div class="projected-bonus-list">
+          ${contributors.length ? contributors.map(renderProjectedBonusCountry).join("") : `
+            <p class="projected-bonus-empty">No projected group bonuses.</p>
+          `}
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function renderProjectedBonusCountry(detail) {
+  return `
+    <span class="projected-bonus-country">
+      <span>${countryFlag(detail.team)} ${escapeHtml(detail.team?.name || detail.teamId)}</span>
+      <em>Group ${escapeHtml(detail.group || "-")} · ${detail.rankLabel}</em>
+      <strong>${formatProjectedBonus(detail.bonus)}</strong>
+    </span>
+  `;
+}
+
+function projectedBonusForManager(managerId) {
+  const bonusByTeam = projectedBonusByTeam();
+  const details = model.rosters
+    .filter((roster) => roster.managerId === managerId)
+    .map((roster) => {
+      const projection = bonusByTeam.get(roster.teamId) || {};
+      const team = teamById(roster.teamId);
+      return {
+        teamId: roster.teamId,
+        team,
+        group: team.group,
+        bonus: Number(projection.bonus || 0),
+        rank: projection.rank || null,
+        rankLabel: projection.rank ? `Rank ${projection.rank}` : "No table"
+      };
+    })
+    .sort((a, b) => {
+      if (b.bonus !== a.bonus) return b.bonus - a.bonus;
+      return String(a.team?.name || a.teamId).localeCompare(String(b.team?.name || b.teamId));
+    });
+
+  return {
+    total: details.reduce((sum, detail) => sum + detail.bonus, 0),
+    details
+  };
+}
+
+function projectedBonusByTeam() {
+  const bonusByTeam = new Map();
+  projectedGroupTables().forEach((table) => {
+    table.rows.forEach((row) => {
+      const bonus = table.hasStarted
+        ? (row.rank === 1 ? 1.5 : row.rank === 2 ? 0.5 : 0)
+        : 0;
+      bonusByTeam.set(row.teamId, {
+        bonus,
+        rank: table.hasStarted ? row.rank : null
+      });
+    });
+  });
+  return bonusByTeam;
+}
+
+function projectedGroupTables() {
+  const groups = new Map();
+  model.teams.forEach((team) => {
+    if (!team.group) return;
+    if (!groups.has(team.group)) groups.set(team.group, new Map());
+    groups.get(team.group).set(team.teamId, groupStandingRow(team));
+  });
+
+  model.matches
+    .filter((match) => isGroupStageMatch(match) && matchHasStarted(match))
+    .forEach((match) => {
+      const group = match.group || teamById(match.homeTeamId)?.group || teamById(match.awayTeamId)?.group;
+      if (!group) return;
+      if (!groups.has(group)) groups.set(group, new Map());
+      const table = groups.get(group);
+      if (!table.has(match.homeTeamId)) table.set(match.homeTeamId, groupStandingRow(teamById(match.homeTeamId)));
+      if (!table.has(match.awayTeamId)) table.set(match.awayTeamId, groupStandingRow(teamById(match.awayTeamId)));
+
+      applyGroupResult(table.get(match.homeTeamId), matchHomeGoals(match), matchAwayGoals(match));
+      applyGroupResult(table.get(match.awayTeamId), matchAwayGoals(match), matchHomeGoals(match));
+    });
+
+  return [...groups.entries()].map(([group, table]) => {
+    const hasStarted = [...table.values()].some((row) => row.played > 0);
+    const hasSourceRanks = [...table.values()].some((row) => Number.isFinite(row.sourceRank));
+    const rows = [...table.values()]
+      .sort(hasStarted ? sortGroupStandingRows : sortSourceGroupRankRows)
+      .map((row, index) => ({
+        ...row,
+        rank: hasStarted || !Number.isFinite(row.sourceRank) ? index + 1 : row.sourceRank
+      }));
+    return {
+      group,
+      hasStarted: hasStarted || hasSourceRanks,
+      rows
+    };
+  });
+}
+
+function groupStandingRow(team) {
+  return {
+    teamId: team.teamId,
+    team,
+    played: 0,
+    points: 0,
+    goalsFor: 0,
+    goalsAgainst: 0,
+    sourceRank: Number.isFinite(Number(team.groupRank)) ? Number(team.groupRank) : null
+  };
+}
+
+function applyGroupResult(row, goalsFor, goalsAgainst) {
+  row.played += 1;
+  row.goalsFor += goalsFor;
+  row.goalsAgainst += goalsAgainst;
+  if (goalsFor > goalsAgainst) row.points += 3;
+  else if (goalsFor === goalsAgainst) row.points += 1;
+}
+
+function sortGroupStandingRows(a, b) {
+  const goalDifferenceA = a.goalsFor - a.goalsAgainst;
+  const goalDifferenceB = b.goalsFor - b.goalsAgainst;
+  if (b.points !== a.points) return b.points - a.points;
+  if (goalDifferenceB !== goalDifferenceA) return goalDifferenceB - goalDifferenceA;
+  if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+  return String(a.team?.name || a.teamId).localeCompare(String(b.team?.name || b.teamId));
+}
+
+function sortSourceGroupRankRows(a, b) {
+  const rankA = Number.isFinite(a.sourceRank) ? a.sourceRank : Number.MAX_SAFE_INTEGER;
+  const rankB = Number.isFinite(b.sourceRank) ? b.sourceRank : Number.MAX_SAFE_INTEGER;
+  if (rankA !== rankB) return rankA - rankB;
+  return String(a.team?.name || a.teamId).localeCompare(String(b.team?.name || b.teamId));
+}
+
+function isGroupStageMatch(match) {
+  return String(match.stage || "").toLowerCase() === "group" || Boolean(match.group);
+}
+
+function formatProjectedBonus(value) {
+  return `${Number(value || 0) > 0 ? "+" : ""}${fmt(value)}`;
+}
+
+function groupPlaceLabel(teamId) {
+  const team = teamById(teamId);
+  if (!team.group) return "Group TBD";
+  const table = projectedGroupTables().find((groupTable) => groupTable.group === team.group);
+  const row = table?.rows.find((item) => item.teamId === teamId);
+  return row?.rank ? `${ordinal(row.rank)} in Group ${team.group}` : `Group ${team.group}`;
+}
+
+function ordinal(value) {
+  const numberValue = Number(value || 0);
+  const suffix = numberValue % 100 >= 11 && numberValue % 100 <= 13
+    ? "th"
+    : { 1: "st", 2: "nd", 3: "rd" }[numberValue % 10] || "th";
+  return `${numberValue}${suffix}`;
 }
 
 function formatShortDate(value) {

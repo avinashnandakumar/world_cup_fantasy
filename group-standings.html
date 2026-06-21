@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Group Standings | World Cup Fantasy</title>
+    <meta name="description" content="Current World Cup group standings for the fantasy league.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body class="group-page">
+    <main>
+      <section class="draft-hero group-hero" aria-labelledby="group-title">
+        <header class="topline draft-topline">
+          <a class="brand-link" href="./index.html" aria-label="Back to home">
+            <img src="./assets/avi_assets/2026-fifa-world-cup-logo.jpg" alt="World Cup 2026 logo" class="brand-mark">
+          </a>
+          <div class="top-actions">
+            <div class="live-chip" id="group-updated"><span></span> Loading</div>
+            <a class="refresh-button" href="./index.html">Home</a>
+          </div>
+        </header>
+
+        <div class="draft-hero-grid">
+          <section class="draft-copy">
+            <p class="eyebrow">Tables</p>
+            <h1 id="group-title">Group Standings</h1>
+            <p class="draft-lede">Current group order, points, goal difference, and projected qualification spots.</p>
+          </section>
+          <section class="draft-scoreboard" aria-label="Group summary">
+            <article>
+              <span>Groups</span>
+              <strong id="group-count">-</strong>
+            </article>
+            <article>
+              <span>Countries</span>
+              <strong id="group-country-count">-</strong>
+            </article>
+            <article>
+              <span>Started</span>
+              <strong id="group-started-count">-</strong>
+            </article>
+          </section>
+        </div>
+      </section>
+
+      <section class="content-section group-standings-section" aria-labelledby="group-tables-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="group-tables-title">Groups</h2>
+          </div>
+          <span class="soft-pill">Top two projected</span>
+        </div>
+        <div id="group-standings-grid" class="group-standings-grid"></div>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./group-standings.js"></script>
+  </body>
+</html>
