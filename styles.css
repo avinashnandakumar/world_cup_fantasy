@@ -369,18 +369,21 @@ h1 {
 }
 
 .countries-remaining-4 {
-  color: #b7791f;
+  color: #b8860b;
 }
 
 .countries-remaining-3 {
-  color: #0c6b45;
+  color: #047857;
 }
 
 .countries-remaining-2 {
-  color: #ca8a04;
+  color: #3b5b92;
 }
 
-.countries-remaining-1,
+.countries-remaining-1 {
+  color: #c05621;
+}
+
 .countries-remaining-0 {
   color: #b91c1c;
 }
