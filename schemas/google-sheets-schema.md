@@ -152,6 +152,7 @@ Required scoring keys:
 | `managerId` | string | Yes | References `Managers.managerId` |
 | `displayName` | string | Yes | Denormalized for frontend speed |
 | `totalPoints` | number | Yes | Sum of ledger points |
+| `bonus` | number | Yes | Earned bonus points from qualified teams, group winners, and champion bonus |
 | `countriesAlive` | number | Yes | Rostered teams not eliminated |
 | `countriesEliminated` | number | Yes | Rostered teams eliminated |
 | `countriesQualified` | number | Yes | Rostered teams qualified for knockouts |
@@ -172,4 +173,3 @@ Required scoring keys:
 | `eventsFetched` | number | No | Provider events read |
 | `ledgerRowsWritten` | number | No | Rows written after rebuild |
 | `message` | string | No | Human-readable summary |
-

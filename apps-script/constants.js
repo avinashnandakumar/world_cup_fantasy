@@ -68,6 +68,7 @@ var WC_HEADERS = {
     'managerId',
     'displayName',
     'totalPoints',
+    'bonus',
     'countryCount',
     'aliveCount',
     'eliminatedCount',

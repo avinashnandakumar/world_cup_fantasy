@@ -78,6 +78,7 @@ Returns scoring constants and concise display metadata.
         "shortName": "Comets",
         "colorToken": "blue",
         "totalPoints": 13,
+        "bonus": 3.5,
         "countriesAlive": 2,
         "countriesEliminated": 4,
         "countriesQualified": 2,

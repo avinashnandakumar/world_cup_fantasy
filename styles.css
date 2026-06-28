@@ -483,6 +483,7 @@ h1 {
   white-space: nowrap;
 }
 
+.bonus-points,
 .projected-bonus-points {
   color: #7c3aed;
   font-size: 1rem;

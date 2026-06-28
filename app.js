@@ -337,7 +337,7 @@ function renderStandings() {
     const manager = managerById(standing.managerId);
     const totals = settledCategoryTotalsForManager(standing.managerId);
     const gamesPlayed = gamesPlayedForManager(standing.managerId);
-    const projectedBonus = projectedBonusForManager(standing.managerId).total;
+    const bonus = Number.isFinite(Number(standing.bonus)) ? Number(standing.bonus) : totals.bonuses;
     const projectedTotal = projectedTotalForManager(standing.managerId, standing.totalPoints);
     const projectionLine = projectedTotal === null ? "" : `
           <span class="total-points-projected">Proj: ${fmt(projectedTotal)}</span>`;
@@ -360,20 +360,18 @@ function renderStandings() {
           <span class="total-points-current">${fmt(standing.totalPoints)}</span>
           ${projectionLine}
         </td>
-        <td data-label="Proj Bonus" class="projected-bonus-points">${formatProjectedBonus(projectedBonus)}</td>
+        <td data-label="Bonus" class="bonus-points">${formatProjectedBonus(bonus)}</td>
         <td data-label="Wins">${fmt(totals.wins)}</td>
         <td data-label="Goals">${fmt(totals.goals)}</td>
         <td data-label="Defense" class="${totals.defense < 0 ? "negative" : ""}">${fmt(totals.defense)}</td>
-        <td data-label="Bonuses">${fmt(totals.bonuses)}</td>
         <td data-label="Cards" class="${totals.cards < 0 ? "negative" : ""}">${fmt(totals.cards)}</td>
         <td class="mobile-standings-strip-cell" aria-label="Standings stat summary">
           <span class="mobile-standings-strip">
             <span class="stat-chip"><span>GP</span>${gamesPlayed}</span>
-            <span class="stat-chip"><span>PB</span>${formatProjectedBonus(projectedBonus)}</span>
+            <span class="stat-chip"><span>B</span>${formatProjectedBonus(bonus)}</span>
             <span class="stat-chip"><span>W</span>${fmt(totals.wins)}</span>
             <span class="stat-chip"><span>G</span>${fmt(totals.goals)}</span>
             <span class="stat-chip ${totals.defense < 0 ? "negative" : ""}"><span>DEF</span>${fmt(totals.defense)}</span>
-            <span class="stat-chip"><span>B</span>${fmt(totals.bonuses)}</span>
             <span class="stat-chip ${totals.cards < 0 ? "negative" : ""}"><span>C</span>${fmt(totals.cards)}</span>
           </span>
         </td>
@@ -386,7 +384,8 @@ function standingsForMainTable() {
   return rosterManagersInOrder()
     .map((standing) => ({
       ...standing,
-      totalPoints: settledTotalForManager(standing.managerId)
+      bonus: earnedBonusForManager(standing.managerId, standing),
+      totalPoints: settledTotalForManager(standing.managerId) + earnedBonusFallbackForManager(standing.managerId, standing)
     }))
     .sort((a, b) => {
       if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
@@ -1283,6 +1282,28 @@ function settledTotalForManager(managerId) {
     .reduce((sum, row) => sum + Number(row.points || 0), 0);
 }
 
+function earnedBonusForManager(managerId, standing = {}) {
+  if (Number.isFinite(Number(standing.bonus))) {
+    return Number(standing.bonus);
+  }
+  const ledgerBonus = settledCategoryTotalsForManager(managerId).bonuses;
+  if (hasEarnedBonusLedgerRows() || !groupBonusFallbackReady()) {
+    return ledgerBonus;
+  }
+  return projectedBonusForManager(managerId).total;
+}
+
+function earnedBonusFallbackForManager(managerId, standing = {}) {
+  if (hasEarnedBonusLedgerRows() || Number.isFinite(Number(standing.bonus))) {
+    return 0;
+  }
+  return groupBonusFallbackReady() ? projectedBonusForManager(managerId).total : 0;
+}
+
+function hasEarnedBonusLedgerRows() {
+  return settledLedgerRows().some((row) => isEarnedBonusCategory(row.category));
+}
+
 function settledLedgerRows() {
   return model.ledger.filter((row) => {
     if (!row.matchId) return true;
@@ -1298,9 +1319,13 @@ function summarizeRows(rows) {
     else if (row.category === "goal_scored") totals.goals += points;
     else if (row.category === "goal_allowed" || row.category === "clean_sheet") totals.defense += points;
     else if (row.category === "red_card") totals.cards += points;
-    else if (["group_draw", "qualify_knockouts", "win_group", "champion"].includes(row.category)) totals.bonuses += points;
+    else if (isEarnedBonusCategory(row.category)) totals.bonuses += points;
     return totals;
   }, { wins: 0, goals: 0, defense: 0, bonuses: 0, cards: 0 });
+}
+
+function isEarnedBonusCategory(category) {
+  return ["qualify_for_knockouts", "qualify_knockouts", "win_group", "champion"].includes(category);
 }
 
 function topTeamTotals() {
@@ -1509,13 +1534,13 @@ function renderProjectedBonuses() {
           <span class="player-swatch"></span>
           <div>
             <h3>${escapeHtml(row.displayName || row.managerId)}</h3>
-            <p>${contributors.length} projected bonus countr${contributors.length === 1 ? "y" : "ies"}</p>
+            <p>${contributors.length} bonus countr${contributors.length === 1 ? "y" : "ies"}</p>
           </div>
           <strong>${formatProjectedBonus(row.projection.total)}</strong>
         </header>
         <div class="projected-bonus-list">
           ${contributors.length ? contributors.map(renderProjectedBonusCountry).join("") : `
-            <p class="projected-bonus-empty">No projected group bonuses.</p>
+            <p class="projected-bonus-empty">No group bonuses.</p>
           `}
         </div>
       </article>
@@ -1577,6 +1602,13 @@ function projectedBonusByTeam() {
     });
   });
   return bonusByTeam;
+}
+
+function groupBonusFallbackReady() {
+  const tables = projectedGroupTables();
+  return tables.length > 0 && tables.every((table) => (
+    table.rows.length >= 4 && table.rows.every((row) => row.played >= 3)
+  ));
 }
 
 function projectedGroupTables() {
