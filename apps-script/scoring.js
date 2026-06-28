@@ -46,13 +46,94 @@ function truthy_(value) {
   return value === true || String(value).toLowerCase() === 'true';
 }
 
+var WC_2026_GROUP_BY_TEAM = {
+  mexico: 'A',
+  'south-africa': 'A',
+  'south-korea': 'A',
+  'korea-republic': 'A',
+  'czech-republic': 'A',
+  czechia: 'A',
+  canada: 'B',
+  'bosnia-herzegovina': 'B',
+  'bosnia-and-herzegovina': 'B',
+  qatar: 'B',
+  switzerland: 'B',
+  brazil: 'C',
+  morocco: 'C',
+  haiti: 'C',
+  scotland: 'C',
+  usa: 'D',
+  'united-states': 'D',
+  paraguay: 'D',
+  turkey: 'D',
+  turkiye: 'D',
+  australia: 'D',
+  germany: 'E',
+  curacao: 'E',
+  'ivory-coast': 'E',
+  'cote-d-ivoire': 'E',
+  ecuador: 'E',
+  netherlands: 'F',
+  japan: 'F',
+  sweden: 'F',
+  tunisia: 'F',
+  belgium: 'G',
+  iran: 'G',
+  egypt: 'G',
+  'new-zealand': 'G',
+  spain: 'H',
+  'cape-verde': 'H',
+  'cabo-verde': 'H',
+  'saudi-arabia': 'H',
+  uruguay: 'H',
+  france: 'I',
+  senegal: 'I',
+  iraq: 'I',
+  norway: 'I',
+  argentina: 'J',
+  algeria: 'J',
+  austria: 'J',
+  jordan: 'J',
+  portugal: 'K',
+  colombia: 'K',
+  uzbekistan: 'K',
+  'dr-congo': 'K',
+  'congo-dr': 'K',
+  england: 'L',
+  croatia: 'L',
+  ghana: 'L',
+  panama: 'L'
+};
+
+function normalizeTeamId_(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function worldCup2026GroupForTeam_(teamId, fallbackGroup) {
+  return WC_2026_GROUP_BY_TEAM[normalizeTeamId_(teamId)] || fallbackGroup || '';
+}
+
 function groupForMatch_(match, teamById) {
-  var homeGroup = teamById[match.homeTeamId] ? teamById[match.homeTeamId].group : '';
-  var awayGroup = teamById[match.awayTeamId] ? teamById[match.awayTeamId].group : '';
+  var homeGroup = worldCup2026GroupForTeam_(
+    match.homeTeamId,
+    teamById[match.homeTeamId] ? teamById[match.homeTeamId].group : ''
+  );
+  var awayGroup = worldCup2026GroupForTeam_(
+    match.awayTeamId,
+    teamById[match.awayTeamId] ? teamById[match.awayTeamId].group : ''
+  );
   if (homeGroup && homeGroup === awayGroup) {
     return homeGroup;
   }
-  return match.group || homeGroup || awayGroup || '';
+  return worldCup2026GroupForTeam_(match.homeTeamId, match.group)
+    || worldCup2026GroupForTeam_(match.awayTeamId, match.group)
+    || match.group
+    || '';
 }
 
 function emptyGroupRow_(teamId) {
@@ -106,18 +187,19 @@ function buildDerivedGroupBonusLookup_(teams, matches) {
 
   teams.forEach(function (team) {
     teamById[team.teamId] = team;
-    if (!team.group) {
+    var group = worldCup2026GroupForTeam_(team.teamId, team.group);
+    if (!group) {
       return;
     }
-    if (!groups[team.group]) {
-      groups[team.group] = {
-        group: team.group,
+    if (!groups[group]) {
+      groups[group] = {
+        group: group,
         rows: {},
         finalMatches: 0,
         complete: false
       };
     }
-    groups[team.group].rows[team.teamId] = emptyGroupRow_(team.teamId);
+    groups[group].rows[team.teamId] = emptyGroupRow_(team.teamId);
   });
 
   matches.forEach(function (match) {
