@@ -143,6 +143,17 @@ select {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
+.soft-pill-link {
+  color: #0c6b45;
+  border-color: var(--line);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.soft-pill-link:hover {
+  border-color: rgba(24, 165, 102, 0.36);
+  background: rgba(24, 165, 102, 0.12);
+}
+
 .refresh-button:hover {
   transform: translateY(-1px);
 }
@@ -291,7 +302,7 @@ h1 {
 
 .fantasy-table {
   width: 100%;
-  min-width: 860px;
+  min-width: 910px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -347,6 +358,11 @@ h1 {
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.countries-remaining {
+  color: #0c6b45;
+  font-weight: 950;
 }
 
 .fantasy-table th:nth-child(1),
@@ -751,6 +767,16 @@ select {
   background: rgba(255, 255, 255, 0.82);
   font-size: 0.74rem;
   font-weight: 850;
+}
+
+.country-bonus-row {
+  border-color: rgba(124, 58, 237, 0.24);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+.country-bonus-row .country-match-date,
+.country-bonus-row .country-match-points {
+  color: #6d28d9;
 }
 
 .country-match-date,
@@ -1853,6 +1879,324 @@ body.modal-open {
   font-weight: 800;
 }
 
+.world-cup-bracket-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1.8rem minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.55rem;
+}
+
+.world-cup-bracket-lane {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.42rem;
+}
+
+.world-cup-bracket-spine {
+  position: relative;
+  min-height: 100%;
+}
+
+.world-cup-bracket-spine::before {
+  position: absolute;
+  inset: 0.25rem calc(50% - 1px);
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(24, 165, 102, 0.16), rgba(24, 165, 102, 0.7), rgba(24, 165, 102, 0.16));
+  content: "";
+}
+
+.world-cup-bracket-match {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.14rem 0.28rem;
+  min-height: 3.75rem;
+  padding: 0.46rem 0.52rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 10px 24px rgba(16, 20, 24, 0.06);
+}
+
+.world-cup-bracket-match::after {
+  position: absolute;
+  top: 50%;
+  width: 0.55rem;
+  height: 1px;
+  background: rgba(16, 20, 24, 0.16);
+  content: "";
+}
+
+.world-cup-bracket-lane-left .world-cup-bracket-match::after {
+  right: -0.56rem;
+}
+
+.world-cup-bracket-lane-right .world-cup-bracket-match::after {
+  left: -0.56rem;
+}
+
+.world-cup-bracket-date {
+  grid-column: 1 / -1;
+  color: #0c6b45;
+  font-size: 0.58rem;
+  font-weight: 950;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.world-cup-bracket-side {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.world-cup-bracket-side strong,
+.world-cup-bracket-side em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.world-cup-bracket-side strong {
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 950;
+}
+
+.world-cup-bracket-side em {
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.world-cup-bracket-side:last-child {
+  text-align: right;
+}
+
+.world-cup-bracket-vs {
+  color: var(--muted);
+  font-size: 0.56rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.full-bracket-section {
+  overflow-x: auto;
+}
+
+.full-bracket-tree {
+  display: grid;
+  grid-template-columns: 18rem 18rem 18rem 18rem 18rem;
+  gap: 0.8rem;
+  min-width: 94rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+}
+
+.full-bracket-round {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.full-bracket-round header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-height: 2.6rem;
+  padding: 0.58rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(10, 16, 22, 0.9);
+  color: white;
+}
+
+.full-bracket-round h2 {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 950;
+}
+
+.full-bracket-round header span {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.full-bracket-round-stack {
+  display: grid;
+  align-content: stretch;
+  gap: 0.62rem;
+}
+
+.full-bracket-round-r32 .full-bracket-round-stack {
+  grid-template-rows: repeat(16, minmax(5.2rem, 1fr));
+}
+
+.full-bracket-round-r16 .full-bracket-round-stack {
+  grid-template-rows: repeat(8, minmax(5.2rem, 1fr));
+}
+
+.full-bracket-round-qf .full-bracket-round-stack {
+  grid-template-rows: repeat(4, minmax(5.2rem, 1fr));
+}
+
+.full-bracket-round-sf .full-bracket-round-stack {
+  grid-template-rows: repeat(2, minmax(5.2rem, 1fr));
+}
+
+.full-bracket-round-final .full-bracket-round-stack {
+  grid-template-rows: minmax(5.2rem, 1fr);
+}
+
+.full-bracket-match {
+  position: relative;
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.48rem;
+  padding: 0.62rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12px 28px rgba(16, 20, 24, 0.07);
+}
+
+.full-bracket-match::after {
+  position: absolute;
+  top: 50%;
+  right: -0.82rem;
+  width: 0.82rem;
+  height: 1px;
+  background: rgba(16, 20, 24, 0.18);
+  content: "";
+}
+
+.full-bracket-round-final .full-bracket-match::after {
+  display: none;
+}
+
+.full-bracket-match-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.full-bracket-match-top span,
+.full-bracket-match-top time {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.full-bracket-sides {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.full-bracket-vs {
+  justify-self: center;
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.full-bracket-side {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.full-bracket-side > strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 950;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.full-bracket-side-empty > strong {
+  color: rgba(16, 20, 24, 0.42);
+}
+
+.full-bracket-path-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.24rem;
+  min-width: 0;
+}
+
+.full-bracket-path-chip {
+  min-width: 0;
+  display: inline-grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.08rem 0.22rem;
+  max-width: 100%;
+  padding: 0.22rem 0.32rem;
+  border: 1px solid rgba(16, 20, 24, 0.08);
+  border-radius: 7px;
+  background: rgba(244, 249, 244, 0.82);
+}
+
+.full-bracket-path-chip > span {
+  grid-row: 1 / 3;
+  font-size: 0.78rem;
+  line-height: 1.15;
+}
+
+.full-bracket-path-chip strong,
+.full-bracket-path-chip em {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.full-bracket-path-chip strong {
+  color: var(--ink);
+  font-size: 0.62rem;
+  font-weight: 950;
+}
+
+.full-bracket-path-chip em {
+  color: var(--muted);
+  font-size: 0.56rem;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.full-bracket-empty-slot {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.45rem;
+  padding: 0.2rem 0.36rem;
+  border: 1px dashed rgba(16, 20, 24, 0.16);
+  border-radius: 7px;
+  color: rgba(16, 20, 24, 0.42);
+  font-size: 0.58rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
 .points-timeline {
   display: grid;
   gap: 0.9rem;
@@ -1871,7 +2215,7 @@ body.modal-open {
   display: grid;
   grid-template-columns: repeat(var(--timeline-days), minmax(4.5rem, 1fr));
   min-height: 15rem;
-  padding: 1rem 0.7rem 2.4rem;
+  padding: 1rem 0.7rem 2.4rem 2.45rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background:
@@ -1882,10 +2226,25 @@ body.modal-open {
 
 .timeline-plot {
   position: absolute;
-  inset: 1rem 0.9rem 2.4rem;
-  width: calc(100% - 1.8rem);
+  inset: 1rem 0.9rem 2.4rem 2.45rem;
+  width: calc(100% - 3.35rem);
   height: calc(100% - 3.4rem);
   overflow: visible;
+}
+
+.timeline-rank-line {
+  stroke: rgba(16, 20, 24, 0.12);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.timeline-rank-label {
+  fill: var(--muted);
+  font-size: 4px;
+  font-weight: 950;
+  text-anchor: end;
+  transform: translateX(-2px);
+  vector-effect: non-scaling-stroke;
 }
 
 .timeline-plot polyline {
@@ -1926,9 +2285,10 @@ body.modal-open {
 .timeline-card {
   display: grid;
   gap: 0.18rem;
-  min-height: 5.5rem;
+  min-height: 6.2rem;
   padding: 0.7rem;
   border: 1px solid var(--line);
+  border-left: 0.38rem solid var(--manager-color, var(--green));
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.86);
 }
@@ -1944,8 +2304,14 @@ body.modal-open {
 
 .timeline-card span:last-child {
   color: #0c6b45;
-  font-size: 1.1rem;
+  font-size: 0.94rem;
   font-weight: 950;
+}
+
+.timeline-card small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
 }
 
 .timeline-legend {
@@ -2368,6 +2734,27 @@ body.modal-open {
     grid-template-columns: 1fr;
     align-items: start;
     min-height: auto;
+  }
+
+  .world-cup-bracket-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .world-cup-bracket-lane {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .world-cup-bracket-spine {
+    display: none;
+  }
+
+  .world-cup-bracket-match::after {
+    display: none;
+  }
+
+  .full-bracket-tree {
+    grid-template-columns: repeat(5, minmax(16.5rem, 1fr));
+    min-width: 86rem;
   }
 }
 
@@ -2850,6 +3237,35 @@ body.modal-open {
   }
 
   .roster-card-header .rank-cell {
+    display: none;
+  }
+
+  .world-cup-bracket-lane {
+    grid-template-columns: 1fr;
+  }
+
+  .world-cup-bracket-match {
+    min-height: 3.55rem;
+  }
+
+  .full-bracket-tree {
+    grid-template-columns: 1fr;
+    min-width: 0;
+  }
+
+  .full-bracket-round-r32 .full-bracket-round-stack,
+  .full-bracket-round-r16 .full-bracket-round-stack,
+  .full-bracket-round-qf .full-bracket-round-stack,
+  .full-bracket-round-sf .full-bracket-round-stack,
+  .full-bracket-round-final .full-bracket-round-stack {
+    grid-template-rows: none;
+  }
+
+  .full-bracket-match {
+    min-height: auto;
+  }
+
+  .full-bracket-match::after {
     display: none;
   }
 

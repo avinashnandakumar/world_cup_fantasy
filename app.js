@@ -36,6 +36,25 @@ const managerColorPalette = [
   "#121820"
 ];
 
+const worldCupRoundOf32Schedule = {
+  73: "2026-06-28",
+  74: "2026-06-29",
+  75: "2026-06-29",
+  76: "2026-06-29",
+  77: "2026-06-30",
+  78: "2026-06-30",
+  79: "2026-06-30",
+  80: "2026-07-01",
+  81: "2026-07-01",
+  82: "2026-07-01",
+  83: "2026-07-02",
+  84: "2026-07-02",
+  85: "2026-07-02",
+  86: "2026-07-03",
+  87: "2026-07-03",
+  88: "2026-07-03"
+};
+
 const countryFlags = {
   argentina: "🇦🇷",
   brazil: "🇧🇷",
@@ -304,7 +323,7 @@ function render() {
   renderFlags();
   renderCountryBreakdown();
   renderMatches();
-  renderRoasts();
+  renderWorldCupBracket();
   renderPointsTimeline();
   renderProjectedBonuses();
   renderAllGames();
@@ -337,6 +356,7 @@ function renderStandings() {
     const manager = managerById(standing.managerId);
     const totals = settledCategoryTotalsForManager(standing.managerId);
     const gamesPlayed = gamesPlayedForManager(standing.managerId);
+    const countriesRemaining = countriesRemainingForManager(standing.managerId);
     const bonus = Number.isFinite(Number(standing.bonus)) ? Number(standing.bonus) : totals.bonuses;
     const projectedTotal = projectedTotalForManager(standing.managerId, standing.totalPoints);
     const projectionLine = projectedTotal === null ? "" : `
@@ -364,10 +384,12 @@ function renderStandings() {
         <td data-label="Wins">${fmt(totals.wins)}</td>
         <td data-label="Goals">${fmt(totals.goals)}</td>
         <td data-label="Defense" class="${totals.defense < 0 ? "negative" : ""}">${fmt(totals.defense)}</td>
+        <td data-label="Alive" class="countries-remaining">${countriesRemaining}</td>
         <td data-label="Cards" class="${totals.cards < 0 ? "negative" : ""}">${fmt(totals.cards)}</td>
         <td class="mobile-standings-strip-cell" aria-label="Standings stat summary">
           <span class="mobile-standings-strip">
             <span class="stat-chip"><span>GP</span>${gamesPlayed}</span>
+            <span class="stat-chip"><span>Alive</span>${countriesRemaining}</span>
             <span class="stat-chip"><span>B</span>${formatProjectedBonus(bonus)}</span>
             <span class="stat-chip"><span>W</span>${fmt(totals.wins)}</span>
             <span class="stat-chip"><span>G</span>${fmt(totals.goals)}</span>
@@ -471,6 +493,7 @@ function renderRosterCountryDetails(managerId, roster, team, points) {
         ${matches.map((match) => renderCountryMatchRow(managerId, roster.teamId, match)).join("") || `
           <p class="country-meta">No matches scheduled yet.</p>
         `}
+        ${renderCountryBonusRow(managerId, roster.teamId)}
       </div>
     </details>
   `;
@@ -535,6 +558,69 @@ function renderRoastCard(roast) {
       </div>
     </article>
   `;
+}
+
+function renderWorldCupBracket() {
+  const node = $("world-cup-bracket-grid");
+  if (!node) return;
+
+  const bracket = projectedWorldCupBracket(projectedGroupTables());
+  const leftSide = bracket.slice(0, Math.ceil(bracket.length / 2));
+  const rightSide = bracket.slice(Math.ceil(bracket.length / 2));
+
+  node.innerHTML = `
+    <div class="world-cup-bracket-lane world-cup-bracket-lane-left">
+      ${leftSide.map((match) => renderWorldCupBracketMatch(match)).join("")}
+    </div>
+    <div class="world-cup-bracket-spine" aria-hidden="true"></div>
+    <div class="world-cup-bracket-lane world-cup-bracket-lane-right">
+      ${rightSide.map((match) => renderWorldCupBracketMatch(match)).join("")}
+    </div>
+  `;
+}
+
+function renderWorldCupBracketMatch(match) {
+  return `
+    <article class="world-cup-bracket-match" aria-label="${escapeHtml(`${match.home.country} vs ${match.away.country}`)}">
+      <span class="world-cup-bracket-date">${escapeHtml(worldCupBracketScheduleLabel(match.matchNumber))}</span>
+      ${renderWorldCupBracketSide(match.home)}
+      <span class="world-cup-bracket-vs">vs</span>
+      ${renderWorldCupBracketSide(match.away)}
+    </article>
+  `;
+}
+
+function renderWorldCupBracketSide(side) {
+  return `
+    <span class="world-cup-bracket-side">
+      <strong>${escapeHtml(side.country)}</strong>
+      <em>${escapeHtml(worldCupBracketManagerLabel(side.teamId))}</em>
+    </span>
+  `;
+}
+
+function worldCupBracketManagerLabel(teamId) {
+  if (!teamId) return "TBD";
+  const managerNames = managersForTeam(teamId)
+    .map((managerId) => managerById(managerId)?.displayName || managerId)
+    .filter(Boolean);
+  return managerNames.length ? managerNames.join(" + ") : "Unowned";
+}
+
+function worldCupBracketScheduleLabel(matchNumber) {
+  const dateKey = worldCupRoundOf32Schedule[matchNumber];
+  if (!dateKey) return "TBD";
+  const [year, month, day] = dateKey.split("-").map(Number);
+  const matchDate = new Date(year, month - 1, day);
+  const today = startOfLocalDay(new Date());
+  const daysAway = Math.round((startOfLocalDay(matchDate) - today) / 86400000);
+
+  if (daysAway === 0) return "Today";
+  if (daysAway === 1) return "Tomorrow";
+  if (daysAway > 1 && daysAway <= 7) {
+    return matchDate.toLocaleDateString([], { weekday: "short" });
+  }
+  return matchDate.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
 function roastTargetLabel(roast) {
@@ -785,7 +871,7 @@ function scoringFormula(row) {
 }
 
 function categorySortValue(category) {
-  const order = ["win", "group_draw", "draw", "goal_scored", "goal_allowed", "clean_sheet", "red_card"];
+  const order = ["win", "group_draw", "draw", "goal_scored", "goal_allowed", "clean_sheet", "red_card", "qualify_for_knockouts", "qualify_knockouts", "win_group", "champion"];
   const index = order.indexOf(String(category || ""));
   return index === -1 ? order.length : index;
 }
@@ -1000,6 +1086,21 @@ function gamesPlayedForManager(managerId) {
   }, 0);
 }
 
+function countriesRemainingForManager(managerId) {
+  return model.rosters
+    .filter((roster) => roster.managerId === managerId)
+    .filter((roster) => teamStillInTournament(teamById(roster.teamId)))
+    .length;
+}
+
+function teamStillInTournament(team) {
+  if (!team?.teamId) return false;
+  const status = String(team.status || "scheduled").toLowerCase();
+  if (["eliminated", "knocked_out", "out", "withdrawn"].includes(status)) return false;
+  if (["active", "scheduled", "live", "qualified", "champion"].includes(status)) return true;
+  return team.qualifiedForKnockouts === true;
+}
+
 function pointsForManagerTeamInMatch(managerId, teamId, matchId) {
   return model.ledger
     .filter((row) => row.managerId === managerId && row.teamId === teamId && row.matchId === matchId)
@@ -1150,6 +1251,51 @@ function renderCountryMatchRow(managerId, teamId, match) {
       <strong class="country-match-points">${resultLabel}</strong>
     </article>
   `;
+}
+
+function renderCountryBonusRow(managerId, teamId) {
+  const rows = bonusRowsForManagerTeam(managerId, teamId);
+  const total = rows.reduce((sum, row) => sum + Number(row.points || 0), 0);
+  const breakdown = rows.length
+    ? rows.map((row) => `${bonusLabel(row.category)} ${formatSignedPoints(row.points)}`).join(" · ")
+    : "No bonus earned";
+  return `
+    <article class="country-match-row country-bonus-row">
+      <span class="country-match-date">BONUS</span>
+      <span class="country-match-opponent">${escapeHtml(breakdown)}</span>
+      <span class="country-match-score">Final</span>
+      <strong class="country-match-points">${formatSignedPoints(total)} pts</strong>
+    </article>
+  `;
+}
+
+function bonusRowsForManagerTeam(managerId, teamId) {
+  const ledgerRows = settledLedgerRows()
+    .filter((row) => row.managerId === managerId && row.teamId === teamId && isEarnedBonusCategory(row.category))
+    .sort((a, b) => categorySortValue(a.category) - categorySortValue(b.category));
+  if (ledgerRows.length || hasEarnedBonusLedgerRows() || !groupBonusFallbackReady()) {
+    return ledgerRows;
+  }
+
+  const projection = projectedBonusByTeam().get(teamId) || {};
+  const rows = [];
+  if (projection.bonus >= 0.5) {
+    rows.push({ category: "qualify_for_knockouts", points: 0.5 });
+  }
+  if (projection.bonus >= 1.5) {
+    rows.push({ category: "win_group", points: 1 });
+  }
+  return rows;
+}
+
+function bonusLabel(category) {
+  const labels = {
+    qualify_for_knockouts: "Qualified",
+    qualify_knockouts: "Qualified",
+    win_group: "Won group",
+    champion: "Champion"
+  };
+  return labels[category] || categoryLabel(category);
 }
 
 function todaysMatches() {
@@ -1424,64 +1570,138 @@ function buildDailyCumulativeTotals() {
   });
 }
 
+function buildStandingsTimeline() {
+  const dailyTotals = buildDailyCumulativeTotals();
+  if (!dailyTotals.length) return [];
+
+  const latestDateValue = dateValueForTimeline(dailyTotals[dailyTotals.length - 1].date);
+  const windowStart = latestDateValue === null ? null : latestDateValue - (13 * 24 * 60 * 60 * 1000);
+  const visibleDays = dailyTotals.filter((day) => {
+    if (windowStart === null) return true;
+    const value = dateValueForTimeline(day.date);
+    return value === null || value >= windowStart;
+  });
+  const sourceDays = visibleDays.length ? visibleDays : dailyTotals;
+
+  return sourceDays.map((day) => {
+    const rankedValues = [...day.values]
+      .sort((a, b) => {
+        if (Number(b.total || 0) !== Number(a.total || 0)) return Number(b.total || 0) - Number(a.total || 0);
+        return String(a.displayName || a.managerId).localeCompare(String(b.displayName || b.managerId));
+      })
+      .map((value, index) => ({
+        ...value,
+        rank: index + 1
+      }));
+    const valuesById = Object.fromEntries(rankedValues.map((value) => [value.managerId, value]));
+    const values = rosterManagersInOrder().map((manager) => valuesById[manager.managerId] || {
+      managerId: manager.managerId,
+      displayName: manager.displayName || manager.managerId,
+      total: 0,
+      rank: rankedValues.length + 1
+    });
+    return {
+      date: day.date,
+      values,
+      leader: rankedValues[0] || null
+    };
+  });
+}
+
+function dateValueForTimeline(date) {
+  const value = Date.parse(`${date}T00:00:00Z`);
+  return Number.isNaN(value) ? null : value;
+}
+
+function standingsJourneyForManagers(timeline, managers) {
+  const latestDay = timeline[timeline.length - 1];
+  const firstDay = timeline[0];
+
+  return managers.map((manager) => {
+    const ranks = timeline
+      .map((day) => day.values.find((value) => value.managerId === manager.managerId)?.rank)
+      .filter((rank) => Number.isFinite(rank));
+    const firstRank = firstDay?.values.find((value) => value.managerId === manager.managerId)?.rank || null;
+    const current = latestDay?.values.find((value) => value.managerId === manager.managerId) || null;
+    const currentRank = current?.rank || null;
+    return {
+      ...manager,
+      currentTotal: current?.total || 0,
+      currentRank,
+      firstRank,
+      bestRank: ranks.length ? Math.min(...ranks) : null,
+      worstRank: ranks.length ? Math.max(...ranks) : null,
+      movement: firstRank && currentRank ? firstRank - currentRank : 0,
+      volatility: ranks.length ? Math.max(...ranks) - Math.min(...ranks) : 0
+    };
+  });
+}
+
 function renderPointsTimeline() {
-  const timeline = buildDailyCumulativeTotals();
+  const node = $("points-timeline");
+  if (!node) return;
+
+  const timeline = buildStandingsTimeline();
+  if (!timeline.length) {
+    node.innerHTML = `<p class="country-meta">No standings history available yet.</p>`;
+    return;
+  }
+
   const managers = rosterManagersInOrder();
   const firstDay = timeline[0];
   const latestDay = timeline[timeline.length - 1];
   const latestLeader = latestDay?.leader;
-  const biggestMove = latestDay?.values
-    .map((value) => {
-      const previous = firstDay?.values.find((item) => item.managerId === value.managerId);
-      return {
-        displayName: value.displayName,
-        delta: Math.round((value.total - (previous?.total || 0)) * 100) / 100
-      };
-    })
-    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
-  const allTotals = timeline.flatMap((day) => day.values.map((value) => value.total));
-  const minTotal = Math.min(0, ...allTotals);
-  const maxTotal = Math.max(1, ...allTotals);
-  const range = Math.max(1, maxTotal - minTotal);
+  const journeys = standingsJourneyForManagers(timeline, managers);
+  const biggestClimb = [...journeys].sort((a, b) => b.movement - a.movement)[0];
+  const wildestRide = [...journeys].sort((a, b) => b.volatility - a.volatility)[0];
+  const rankCount = Math.max(1, managers.length);
   const width = 100;
   const height = 100;
-  const pointsFor = (managerId) => timeline.map((day, dayIndex) => {
+  const rankPointsFor = (managerId) => timeline.map((day, dayIndex) => {
     const value = day.values.find((item) => item.managerId === managerId);
     const x = timeline.length === 1 ? width / 2 : (dayIndex / (timeline.length - 1)) * width;
-    const y = height - (((value?.total || 0) - minTotal) / range) * height;
-    return { x, y, total: value?.total || 0 };
+    const y = rankCount === 1 ? height / 2 : (((value?.rank || rankCount) - 1) / (rankCount - 1)) * height;
+    return { x, y, rank: value?.rank || rankCount, total: value?.total || 0 };
   });
+  const rankMarkers = Array.from({ length: rankCount }, (_, index) => ({
+    rank: index + 1,
+    y: rankCount === 1 ? height / 2 : (index / (rankCount - 1)) * height
+  }));
 
-  $("points-timeline").innerHTML = `
+  node.innerHTML = `
     <div class="timeline-mobile-summary">
       <article>
         <span>Latest leader</span>
         <strong>${latestLeader?.displayName || "No leader"}</strong>
-        <em>${fmt(latestLeader?.total || 0)} pts</em>
+        <em>#${latestLeader?.rank || 1} · ${fmt(latestLeader?.total || 0)} pts</em>
       </article>
       <article>
-        <span>Biggest move</span>
-        <strong>${biggestMove?.displayName || "No movement"}</strong>
-        <em>${biggestMove ? `${Number(biggestMove.delta) > 0 ? "+" : ""}${fmt(biggestMove.delta)} pts` : "0 pts"}</em>
+        <span>Biggest climb</span>
+        <strong>${biggestClimb?.displayName || "No movement"}</strong>
+        <em>${biggestClimb?.movement > 0 ? `+${biggestClimb.movement} place${biggestClimb.movement === 1 ? "" : "s"}` : "No climb"}</em>
       </article>
       <article>
-        <span>Updated</span>
-        <strong>${formatShortDate(latestDay?.date)}</strong>
-        <em>${timeline.length} day${timeline.length === 1 ? "" : "s"}</em>
+        <span>Wildest ride</span>
+        <strong>${wildestRide?.displayName || "No movement"}</strong>
+        <em>${wildestRide?.volatility ? `${wildestRide.volatility + 1}-rank range` : "Steady"}</em>
       </article>
     </div>
     <div class="timeline-scroll">
       <div class="timeline-chart" style="--timeline-days:${timeline.length}">
         <svg class="timeline-plot" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+          ${rankMarkers.map((marker) => `
+            <line class="timeline-rank-line" x1="0" x2="${width}" y1="${marker.y}" y2="${marker.y}" />
+            <text class="timeline-rank-label" x="0" y="${marker.y}" dominant-baseline="middle">#${marker.rank}</text>
+          `).join("")}
           ${managers.map((manager) => {
-            const points = pointsFor(manager.managerId);
-            const linePoints = points.length === 1
-              ? [{ ...points[0], x: 8 }, { ...points[0], x: 92 }]
-              : points;
+            const ranks = rankPointsFor(manager.managerId);
+            const linePoints = ranks.length === 1
+              ? [{ ...ranks[0], x: 8 }, { ...ranks[0], x: 92 }]
+              : ranks;
             const color = managerColor(managerById(manager.managerId), manager.managerId);
             return `
               <polyline points="${linePoints.map((point) => `${point.x},${point.y}`).join(" ")}" stroke="${color}" />
-              ${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="1.4" fill="${color}" />`).join("")}
+              ${ranks.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="1.6" fill="${color}" />`).join("")}
             `;
           }).join("")}
         </svg>
@@ -1493,11 +1713,12 @@ function renderPointsTimeline() {
       </div>
     </div>
     <div class="timeline-table">
-      ${timeline.map((day) => `
-        <article class="timeline-card">
-          <span class="timeline-date">${formatShortDate(day.date)}</span>
-          <strong>${day.leader?.displayName || "No leader"}</strong>
-          <span>${fmt(day.leader?.total || 0)} pts</span>
+      ${journeys.map((journey) => `
+        <article class="timeline-card" style="--manager-color:${managerColor(managerById(journey.managerId), journey.managerId)}">
+          <span class="timeline-date">#${journey.currentRank || "?"} now</span>
+          <strong>${escapeHtml(journey.displayName || journey.managerId)}</strong>
+          <span>Best #${journey.bestRank || "?"} · Low #${journey.worstRank || "?"}</span>
+          <small>${journey.movement > 0 ? `Up ${journey.movement}` : journey.movement < 0 ? `Down ${Math.abs(journey.movement)}` : "Even"} since ${formatShortDate(firstDay?.date)}</small>
         </article>
       `).join("")}
     </div>
@@ -1724,6 +1945,71 @@ function bestThirdPlaceRows(tables) {
 
 function sortThirdPlaceRows(a, b) {
   return sortGroupStandingRows(a, b);
+}
+
+function projectedWorldCupBracket(tables) {
+  const groupRows = new Map(tables.map((table) => [table.group, table.rows]));
+  const thirdRows = bestThirdPlaceRows(tables).slice(0, 8);
+  const usedThirdGroups = new Set();
+  const thirdByGroup = new Map(thirdRows.map((row) => [row.group, row]));
+  const matchups = [
+    [73, worldCupSeedLabel(groupRows, "A", 2), worldCupSeedLabel(groupRows, "B", 2)],
+    [74, worldCupSeedLabel(groupRows, "E", 1), worldCupThirdSeedByGroup("D", thirdByGroup, usedThirdGroups)],
+    [75, worldCupSeedLabel(groupRows, "F", 1), worldCupSeedLabel(groupRows, "C", 2)],
+    [76, worldCupSeedLabel(groupRows, "C", 1), worldCupSeedLabel(groupRows, "F", 2)],
+    [77, worldCupSeedLabel(groupRows, "I", 1), worldCupThirdSeedByGroup("F", thirdByGroup, usedThirdGroups)],
+    [78, worldCupSeedLabel(groupRows, "E", 2), worldCupSeedLabel(groupRows, "I", 2)],
+    [79, worldCupSeedLabel(groupRows, "A", 1), worldCupThirdSeedByGroup("E", thirdByGroup, usedThirdGroups)],
+    [80, worldCupSeedLabel(groupRows, "L", 1), worldCupThirdSeedByGroup("K", thirdByGroup, usedThirdGroups)],
+    [81, worldCupSeedLabel(groupRows, "D", 1), worldCupThirdSeedByGroup("B", thirdByGroup, usedThirdGroups)],
+    [82, worldCupSeedLabel(groupRows, "G", 1), worldCupThirdSeedByGroup("I", thirdByGroup, usedThirdGroups)],
+    [83, worldCupSeedLabel(groupRows, "K", 2), worldCupSeedLabel(groupRows, "L", 2)],
+    [84, worldCupSeedLabel(groupRows, "H", 1), worldCupSeedLabel(groupRows, "J", 2)],
+    [85, worldCupSeedLabel(groupRows, "B", 1), worldCupThirdSeedByGroup("J", thirdByGroup, usedThirdGroups)],
+    [86, worldCupSeedLabel(groupRows, "J", 1), worldCupSeedLabel(groupRows, "H", 2)],
+    [87, worldCupSeedLabel(groupRows, "K", 1), worldCupThirdSeedByGroup("L", thirdByGroup, usedThirdGroups)],
+    [88, worldCupSeedLabel(groupRows, "D", 2), worldCupSeedLabel(groupRows, "G", 2)]
+  ];
+
+  return matchups.map(([matchNumber, home, away]) => ({ matchNumber, home, away }));
+}
+
+function worldCupSeedLabel(groupRows, group, rank) {
+  const row = groupRows.get(group)?.find((item) => item.rank === rank);
+  const seed = rank === 1 ? "W" : "R";
+  return {
+    seed: `${seed}${group}`,
+    teamId: row?.teamId || "",
+    country: row ? (row.team?.name || row.teamId) : `${seed}${group}`
+  };
+}
+
+function worldCupThirdSeedLabel(eligibleGroups, thirdByGroup, usedThirdGroups) {
+  const group = eligibleGroups.find((candidate) => thirdByGroup.has(candidate) && !usedThirdGroups.has(candidate));
+  if (!group) {
+    return {
+      seed: `3rd ${eligibleGroups.join("/")}`,
+      teamId: "",
+      country: `3rd ${eligibleGroups.join("/")}`
+    };
+  }
+  usedThirdGroups.add(group);
+  const row = thirdByGroup.get(group);
+  return {
+    seed: `3${group}`,
+    teamId: row?.teamId || "",
+    country: row ? (row.team?.name || row.teamId) : `3${group}`
+  };
+}
+
+function worldCupThirdSeedByGroup(group, thirdByGroup, usedThirdGroups) {
+  const row = thirdByGroup.get(group);
+  usedThirdGroups.add(group);
+  return {
+    seed: `3${group}`,
+    teamId: row?.teamId || "",
+    country: row ? (row.team?.name || row.teamId) : `3${group}`
+  };
 }
 
 function isGroupStageMatch(match) {

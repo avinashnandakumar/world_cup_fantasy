@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>World Cup Bracket | World Cup Fantasy</title>
+    <meta name="description" content="Full projected World Cup knockout bracket with fantasy manager paths.">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body class="group-page bracket-page">
+    <main>
+      <section class="draft-hero group-hero bracket-hero" aria-labelledby="full-bracket-title">
+        <header class="topline draft-topline">
+          <a class="brand-link" href="./index.html" aria-label="Back to home">
+            <img src="./assets/avi_assets/2026-fifa-world-cup-logo.jpg" alt="World Cup 2026 logo" class="brand-mark">
+          </a>
+          <div class="top-actions">
+            <div class="live-chip" id="bracket-updated"><span></span> Loading</div>
+            <a class="refresh-button" href="./index.html">Home</a>
+            <a class="refresh-button" href="./group-standings.html">Groups</a>
+          </div>
+        </header>
+
+        <div class="draft-hero-grid">
+          <section class="draft-copy">
+            <p class="eyebrow">Knockout Paths</p>
+            <h1 id="full-bracket-title">World Cup Bracket</h1>
+            <p class="draft-lede">Every projected branch from the Round of 32 to the final, labeled by country and fantasy player.</p>
+          </section>
+          <section class="draft-scoreboard" aria-label="Bracket summary">
+            <article>
+              <span>Teams</span>
+              <strong id="bracket-team-count">-</strong>
+            </article>
+            <article>
+              <span>Games</span>
+              <strong id="bracket-match-count">-</strong>
+            </article>
+            <article>
+              <span>Final</span>
+              <strong>Jul 19</strong>
+            </article>
+          </section>
+        </div>
+      </section>
+
+      <section class="content-section full-bracket-section" aria-labelledby="full-tree-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="full-tree-title">Full Knockout Tree</h2>
+          </div>
+          <span class="soft-pill">Projected paths</span>
+        </div>
+        <div id="full-bracket-tree" class="full-bracket-tree"></div>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./world-cup-2026-groups.js?v=20260620-groups"></script>
+    <script src="./world-cup-bracket.js?v=20260627-full-bracket"></script>
+  </body>
+</html>

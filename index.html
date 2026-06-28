@@ -38,7 +38,8 @@
               <a href="./group-standings.html">Group Standings</a>
               <a href="#countries">Rosters</a>
               <a href="#matches">Today</a>
-              <a href="#roast-bot">Red Card Report</a>
+              <a href="#world-cup-bracket">Bracket</a>
+              <a href="./world-cup-bracket.html">Full Bracket</a>
               <a href="#timeline">Timeline</a>
               <a href="#projected-bonuses">Bonuses</a>
               <a href="#all-games">All games</a>
@@ -65,6 +66,7 @@
                     <th title="Wins">W</th>
                     <th title="Goals">G</th>
                     <th title="Defense">Def</th>
+                    <th title="Countries remaining">Alive</th>
                     <th title="Cards">Cards</th>
                   </tr>
                 </thead>
@@ -77,16 +79,6 @@
         <div class="flag-ribbon" id="flag-ribbon" aria-label="Countries in play"></div>
       </section>
 
-      <section id="roast-bot" class="content-section roast-section" aria-labelledby="roast-title">
-        <div class="section-heading">
-          <div>
-            <h2 id="roast-title">Red Card Report</h2>
-          </div>
-          <span id="roast-updated" class="soft-pill">Warming up</span>
-        </div>
-        <div id="roast-feed" class="roast-feed"></div>
-      </section>
-
       <section id="matches" class="content-section match-section" aria-labelledby="matches-title">
         <div class="section-heading">
           <div>
@@ -94,6 +86,16 @@
           </div>
         </div>
         <div id="match-strip" class="match-strip"></div>
+      </section>
+
+      <section id="world-cup-bracket" class="content-section bracket-section" aria-labelledby="bracket-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="bracket-title">World Cup Bracket</h2>
+          </div>
+          <a class="soft-pill soft-pill-link" href="./world-cup-bracket.html">Full bracket</a>
+        </div>
+        <div id="world-cup-bracket-grid" class="world-cup-bracket-grid"></div>
       </section>
 
       <section id="countries" class="content-section countries-section" aria-labelledby="countries-title">
@@ -108,9 +110,9 @@
       <section id="timeline" class="content-section timeline-section" aria-labelledby="timeline-title">
         <div class="section-heading">
           <div>
-            <h2 id="timeline-title">Points Over Time</h2>
+            <h2 id="timeline-title">Standings Over Time</h2>
           </div>
-          <span class="soft-pill">Cumulative</span>
+          <span class="soft-pill">Last 14 days</span>
         </div>
         <div id="points-timeline" class="points-timeline"></div>
       </section>
