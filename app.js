@@ -254,7 +254,9 @@ function normalizeAppsScriptSnapshot(snapshot) {
       homeGoals: Number(match.homeScore || 0),
       awayGoals: Number(match.awayScore || 0),
       status: match.status || "scheduled",
-      kickoffUtc: match.kickoffUtc || ""
+      kickoffUtc: match.kickoffUtc || "",
+      winnerTeamId: match.winnerTeamId || "",
+      matchNumber: match.matchNumber || ""
     })),
     ledger: snapshot.ledger || [],
     roasts: normalizeRoasts(snapshot.roasts)
@@ -375,21 +377,21 @@ function renderStandings() {
             </span>
           </span>
         </td>
-        <td data-label="GP">${gamesPlayed}</td>
         <td data-label="Total" class="total-points">
           <span class="total-points-current">${fmt(standing.totalPoints)}</span>
           ${projectionLine}
         </td>
+        <td data-label="Alive" class="countries-remaining countries-remaining-${Math.max(0, Math.min(4, countriesRemaining))}">${countriesRemaining}</td>
+        <td data-label="GP">${gamesPlayed}</td>
         <td data-label="Bonus" class="bonus-points">${formatProjectedBonus(bonus)}</td>
         <td data-label="Wins">${fmt(totals.wins)}</td>
         <td data-label="Goals">${fmt(totals.goals)}</td>
         <td data-label="Defense" class="${totals.defense < 0 ? "negative" : ""}">${fmt(totals.defense)}</td>
-        <td data-label="Alive" class="countries-remaining">${countriesRemaining}</td>
         <td data-label="Cards" class="${totals.cards < 0 ? "negative" : ""}">${fmt(totals.cards)}</td>
         <td class="mobile-standings-strip-cell" aria-label="Standings stat summary">
           <span class="mobile-standings-strip">
-            <span class="stat-chip"><span>GP</span>${gamesPlayed}</span>
             <span class="stat-chip"><span>Alive</span>${countriesRemaining}</span>
+            <span class="stat-chip"><span>GP</span>${gamesPlayed}</span>
             <span class="stat-chip"><span>B</span>${formatProjectedBonus(bonus)}</span>
             <span class="stat-chip"><span>W</span>${fmt(totals.wins)}</span>
             <span class="stat-chip"><span>G</span>${fmt(totals.goals)}</span>
@@ -476,16 +478,17 @@ function managerRosterAnchorId(managerId) {
 function renderRosterCountryDetails(managerId, roster, team, points) {
   const matches = matchesForTeam(roster.teamId);
   const nextMatch = nextScheduledMatchForTeam(roster.teamId);
-  const gameDayLabel = nextMatch ? formatUpcomingMatchLabel(nextMatch) : "No upcoming games";
   const groupPlace = groupPlaceLabel(roster.teamId);
+  const metaLabel = nextMatch ? `${formatUpcomingMatchLabel(nextMatch)} · ${groupPlace}` : groupPlace;
+  const isEliminated = !teamStillInTournament(team);
   return `
-    <details class="roster-country-detail">
+    <details class="roster-country-detail ${isEliminated ? "roster-country-detail-eliminated" : ""}">
       <summary class="roster-country-row">
         <span class="country-expand-icon" aria-hidden="true"></span>
         <span class="flag-square flag-emoji">${countryFlag(team)}</span>
         <span class="roster-country-name">
           <strong>${team?.name || roster.teamId}</strong>
-          <span>${gameDayLabel} · ${groupPlace}</span>
+          <span>${metaLabel}</span>
         </span>
         <strong class="country-point-number">${fmt(points)}</strong>
       </summary>
@@ -564,7 +567,11 @@ function renderWorldCupBracket() {
   const node = $("world-cup-bracket-grid");
   if (!node) return;
 
-  const bracket = projectedWorldCupBracket(projectedGroupTables());
+  const round = activeCondensedBracketRound();
+  const title = $("bracket-title");
+  if (title) title.textContent = round.title;
+
+  const bracket = round.matches;
   const leftSide = bracket.slice(0, Math.ceil(bracket.length / 2));
   const rightSide = bracket.slice(Math.ceil(bracket.length / 2));
 
@@ -580,23 +587,156 @@ function renderWorldCupBracket() {
 }
 
 function renderWorldCupBracketMatch(match) {
+  const actualMatch = match.actualMatch || actualMatchForBracketMatch(match);
   return `
     <article class="world-cup-bracket-match" aria-label="${escapeHtml(`${match.home.country} vs ${match.away.country}`)}">
-      <span class="world-cup-bracket-date">${escapeHtml(worldCupBracketScheduleLabel(match.matchNumber))}</span>
-      ${renderWorldCupBracketSide(match.home)}
+      <span class="world-cup-bracket-date">${escapeHtml(worldCupBracketScheduleLabel(match.matchNumber, actualMatch))}</span>
+      ${renderWorldCupBracketSide(match.home, actualMatch)}
       <span class="world-cup-bracket-vs">vs</span>
-      ${renderWorldCupBracketSide(match.away)}
+      ${renderWorldCupBracketSide(match.away, actualMatch)}
     </article>
   `;
 }
 
-function renderWorldCupBracketSide(side) {
+function renderWorldCupBracketSide(side, match) {
+  const points = match && isFinalMatch(match) ? bracketTeamPoints(match.matchId, side.teamId) : null;
   return `
     <span class="world-cup-bracket-side">
       <strong>${escapeHtml(side.country)}</strong>
       <em>${escapeHtml(worldCupBracketManagerLabel(side.teamId))}</em>
+      ${points === null ? "" : `<b class="world-cup-bracket-points">${formatSignedPoints(points)}</b>`}
     </span>
   `;
+}
+
+function activeCondensedBracketRound() {
+  const stage = activeKnockoutStage();
+  const actualMatches = model.matches
+    .filter((match) => normalizedStage(match.stage) === stage)
+    .sort(sortMatchesChronologically);
+
+  if (stage !== "R32" && actualMatches.length) {
+    return {
+      stage,
+      title: knockoutStageLabel(stage),
+      matches: actualMatches.map((match, index) => bracketMatchFromActualMatch(match, index))
+    };
+  }
+
+  return {
+    stage: "R32",
+    title: knockoutStageLabel("R32"),
+    matches: projectedWorldCupBracket(projectedGroupTables()).map((match) => ({
+      ...match,
+      actualMatch: actualMatchForBracketMatch(match)
+    }))
+  };
+}
+
+function activeKnockoutStage() {
+  const stageOrder = ["R32", "R16", "QF", "SF", "FINAL"];
+  const knockoutMatches = model.matches.filter((match) => stageOrder.includes(normalizedStage(match.stage)));
+  const unfinished = knockoutMatches
+    .filter((match) => !isFinalMatch(match))
+    .sort((a, b) => stageOrder.indexOf(normalizedStage(a.stage)) - stageOrder.indexOf(normalizedStage(b.stage)) || sortMatchesChronologically(a, b));
+  if (unfinished.length) return normalizedStage(unfinished[0].stage);
+
+  const finished = knockoutMatches
+    .filter((match) => isFinalMatch(match))
+    .sort((a, b) => stageOrder.indexOf(normalizedStage(b.stage)) - stageOrder.indexOf(normalizedStage(a.stage)) || sortMatchesChronologically(b, a));
+  return finished.length ? normalizedStage(finished[0].stage) : "R32";
+}
+
+function bracketMatchFromActualMatch(match, index) {
+  return {
+    matchNumber: match.matchNumber || match.apiMatchId || match.matchId || index + 1,
+    stage: normalizedStage(match.stage),
+    actualMatch: match,
+    home: bracketSideFromTeam(match.homeTeamId),
+    away: bracketSideFromTeam(match.awayTeamId)
+  };
+}
+
+function bracketSideFromTeam(teamId) {
+  const team = teamById(teamId);
+  return {
+    seed: "",
+    teamId,
+    country: team?.name || teamId || "TBD"
+  };
+}
+
+function actualMatchForBracketMatch(bracketMatch) {
+  const stage = bracketMatch.stage || "R32";
+  return model.matches.find((match) => {
+    if (normalizedStage(match.stage) === stage && bracketMatchNumbersMatch(match, bracketMatch.matchNumber)) return true;
+    if (bracketMatchNumbersMatch(match, bracketMatch.matchNumber)) return true;
+    if (!bracketTeamsMatch(match, bracketMatch)) return false;
+    return normalizedStage(match.stage) === stage || matchDateMatchesBracketSlot(match, bracketMatch.matchNumber);
+  }) || null;
+}
+
+function bracketMatchNumbersMatch(match, matchNumber) {
+  if (!matchNumber) return false;
+  const target = String(matchNumber);
+  return [match.matchNumber, match.apiMatchId, match.matchId]
+    .filter(Boolean)
+    .some((value) => {
+      const text = String(value);
+      return text === target || text.endsWith(`-${target}`) || text.endsWith(`_${target}`);
+    });
+}
+
+function bracketTeamsMatch(match, bracketMatch) {
+  const sameDirection = match.homeTeamId === bracketMatch.home.teamId && match.awayTeamId === bracketMatch.away.teamId;
+  const swapped = match.homeTeamId === bracketMatch.away.teamId && match.awayTeamId === bracketMatch.home.teamId;
+  return sameDirection || swapped;
+}
+
+function matchDateMatchesBracketSlot(match, matchNumber) {
+  const dateKey = worldCupRoundOf32Schedule[matchNumber];
+  if (!dateKey || !match.kickoffUtc) return false;
+  return localDateKey(match.kickoffUtc) === dateKey;
+}
+
+function bracketTeamPoints(matchId, teamId) {
+  if (!matchId || !teamId) return 0;
+  return model.ledger
+    .filter((row) => row.matchId === matchId && row.teamId === teamId)
+    .reduce((sum, row) => sum + Number(row.points || 0), 0);
+}
+
+function normalizedStage(stage) {
+  const value = String(stage || "").toUpperCase().replaceAll("-", "_").replaceAll(" ", "_");
+  const aliases = {
+    ROUND_OF_32: "R32",
+    RO32: "R32",
+    R32: "R32",
+    ROUND_OF_16: "R16",
+    RO16: "R16",
+    R16: "R16",
+    QUARTER_FINAL: "QF",
+    QUARTERFINALS: "QF",
+    QUARTER_FINALS: "QF",
+    QF: "QF",
+    SEMI_FINAL: "SF",
+    SEMIFINALS: "SF",
+    SEMI_FINALS: "SF",
+    SF: "SF",
+    FINAL: "FINAL"
+  };
+  return aliases[value] || value;
+}
+
+function knockoutStageLabel(stage) {
+  const labels = {
+    R32: "Round of 32",
+    R16: "Round of 16",
+    QF: "Quarterfinals",
+    SF: "Semifinals",
+    FINAL: "Final"
+  };
+  return labels[normalizedStage(stage)] || "Round of 32";
 }
 
 function worldCupBracketManagerLabel(teamId) {
@@ -607,7 +747,8 @@ function worldCupBracketManagerLabel(teamId) {
   return managerNames.length ? managerNames.join(" + ") : "Unowned";
 }
 
-function worldCupBracketScheduleLabel(matchNumber) {
+function worldCupBracketScheduleLabel(matchNumber, match = null) {
+  if (match?.kickoffUtc) return formatMatchDate(match);
   const dateKey = worldCupRoundOf32Schedule[matchNumber];
   if (!dateKey) return "TBD";
   const [year, month, day] = dateKey.split("-").map(Number);
@@ -1087,18 +1228,72 @@ function gamesPlayedForManager(managerId) {
 }
 
 function countriesRemainingForManager(managerId) {
-  return model.rosters
+  const aliveTeamIds = teamsStillAliveInTournament();
+  return new Set(model.rosters
     .filter((roster) => roster.managerId === managerId)
-    .filter((roster) => teamStillInTournament(teamById(roster.teamId)))
-    .length;
+    .map((roster) => roster.teamId)
+    .filter((teamId) => aliveTeamIds.has(teamId))).size;
 }
 
 function teamStillInTournament(team) {
   if (!team?.teamId) return false;
-  const status = String(team.status || "scheduled").toLowerCase();
-  if (["eliminated", "knocked_out", "out", "withdrawn"].includes(status)) return false;
-  if (["active", "scheduled", "live", "qualified", "champion"].includes(status)) return true;
-  return team.qualifiedForKnockouts === true;
+  return teamsStillAliveInTournament().has(team.teamId);
+}
+
+function teamsStillAliveInTournament() {
+  const statusEliminated = new Set(model.teams
+    .filter((team) => teamMarkedEliminated(team))
+    .map((team) => team.teamId));
+  const knockoutStages = ["R32", "R16", "QF", "SF", "FINAL"];
+  const knockoutMatches = model.matches
+    .filter((match) => knockoutStages.includes(normalizedStage(match.stage)))
+    .sort(sortMatchesChronologically);
+  const finalMatchComplete = knockoutMatches.some((match) => normalizedStage(match.stage) === "FINAL" && isFinalMatch(match));
+
+  if (finalMatchComplete) return new Set();
+
+  const alive = new Set(projectedWorldCupBracket(projectedGroupTables())
+    .flatMap((match) => [match.home.teamId, match.away.teamId])
+    .filter(Boolean));
+  const eliminatedByMatch = new Set();
+
+  knockoutMatches.forEach((match) => {
+    if (isFinalMatch(match)) {
+      loserTeamIds(match).forEach((teamId) => eliminatedByMatch.add(teamId));
+      const winnerId = winningTeamId(match);
+      if (winnerId && normalizedStage(match.stage) !== "FINAL") alive.add(winnerId);
+      return;
+    }
+
+    if (match.homeTeamId) alive.add(match.homeTeamId);
+    if (match.awayTeamId) alive.add(match.awayTeamId);
+  });
+
+  statusEliminated.forEach((teamId) => alive.delete(teamId));
+  eliminatedByMatch.forEach((teamId) => alive.delete(teamId));
+  return alive;
+}
+
+function teamMarkedEliminated(team) {
+  const status = String(team?.status || "").toLowerCase();
+  return ["eliminated", "knocked_out", "knocked-out", "out", "withdrawn"].includes(status);
+}
+
+function winningTeamId(match) {
+  if (match.winnerTeamId) return match.winnerTeamId;
+  const homeGoals = matchHomeGoals(match);
+  const awayGoals = matchAwayGoals(match);
+  if (homeGoals > awayGoals) return match.homeTeamId;
+  if (awayGoals > homeGoals) return match.awayTeamId;
+  return "";
+}
+
+function loserTeamIds(match) {
+  const winnerId = winningTeamId(match);
+  if (!winnerId) return [];
+  return [match.homeTeamId, match.awayTeamId]
+    .filter(Boolean)
+    .filter((teamId) => teamId !== winnerId);
 }
 
 function pointsForManagerTeamInMatch(managerId, teamId, matchId) {
@@ -1971,7 +2166,7 @@ function projectedWorldCupBracket(tables) {
     [88, worldCupSeedLabel(groupRows, "D", 2), worldCupSeedLabel(groupRows, "G", 2)]
   ];
 
-  return matchups.map(([matchNumber, home, away]) => ({ matchNumber, home, away }));
+  return matchups.map(([matchNumber, home, away]) => ({ matchNumber, stage: "R32", home, away }));
 }
 
 function worldCupSeedLabel(groupRows, group, rank) {

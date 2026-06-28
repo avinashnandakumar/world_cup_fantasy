@@ -319,21 +319,24 @@ h1 {
 
 .fantasy-table th:nth-child(3),
 .fantasy-table td:nth-child(3) {
-  width: 4rem;
+  width: 6.5rem;
 }
 
 .fantasy-table th:nth-child(4),
 .fantasy-table td:nth-child(4) {
-  width: 6.5rem;
+  width: 5.5rem;
 }
 
 .fantasy-table th:nth-child(5),
 .fantasy-table td:nth-child(5) {
-  width: 6.5rem;
+  width: 4rem;
 }
 
 .fantasy-table th:nth-child(6),
-.fantasy-table td:nth-child(6),
+.fantasy-table td:nth-child(6) {
+  width: 6.5rem;
+}
+
 .fantasy-table th:nth-child(7),
 .fantasy-table td:nth-child(7) {
   width: 4.5rem;
@@ -363,6 +366,23 @@ h1 {
 .countries-remaining {
   color: #0c6b45;
   font-weight: 950;
+}
+
+.countries-remaining-4 {
+  color: #b7791f;
+}
+
+.countries-remaining-3 {
+  color: #0c6b45;
+}
+
+.countries-remaining-2 {
+  color: #ca8a04;
+}
+
+.countries-remaining-1,
+.countries-remaining-0 {
+  color: #b91c1c;
 }
 
 .fantasy-table th:nth-child(1),
@@ -654,12 +674,25 @@ select {
   background: rgba(16, 20, 24, 0.035);
 }
 
+.roster-country-detail-eliminated,
+.roster-country-detail-eliminated:nth-child(odd) {
+  background: rgba(220, 38, 38, 0.1);
+}
+
 .roster-country-detail[open] {
   background: rgba(16, 20, 24, 0.055);
 }
 
+.roster-country-detail-eliminated[open] {
+  background: rgba(220, 38, 38, 0.14);
+}
+
 .roster-country-detail[open] .roster-country-row {
   background: rgba(255, 255, 255, 0.66);
+}
+
+.roster-country-detail-eliminated[open] .roster-country-row {
+  background: rgba(255, 245, 245, 0.72);
 }
 
 .roster-country-row {
@@ -739,6 +772,11 @@ select {
   font-size: 0.68rem;
   font-weight: 750;
   text-transform: capitalize;
+}
+
+.roster-country-detail-eliminated .roster-country-name span,
+.roster-country-detail-eliminated .country-point-number {
+  color: #991b1b;
 }
 
 .country-point-number {
@@ -1976,8 +2014,26 @@ body.modal-open {
   font-weight: 850;
 }
 
+.world-cup-bracket-points {
+  justify-self: start;
+  min-width: 2.1rem;
+  padding: 0.1rem 0.28rem;
+  border-radius: 999px;
+  background: rgba(16, 20, 24, 0.08);
+  color: var(--ink);
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 950;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .world-cup-bracket-side:last-child {
   text-align: right;
+}
+
+.world-cup-bracket-side:last-child .world-cup-bracket-points {
+  justify-self: end;
 }
 
 .world-cup-bracket-vs {
@@ -3027,21 +3083,17 @@ body.modal-open {
   }
 
   .fantasy-table td:nth-child(3) {
-    display: none;
-  }
-
-  .fantasy-table td:nth-child(4) {
     grid-column: 3;
     grid-row: 1 / span 2;
     align-self: center;
     text-align: right;
   }
 
-  .fantasy-table td:nth-child(n + 5) {
+  .fantasy-table td:nth-child(n + 4) {
     display: none;
   }
 
-  .fantasy-table td:nth-child(n + 5)::before {
+  .fantasy-table td:nth-child(n + 4)::before {
     content: none;
   }
 
