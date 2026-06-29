@@ -1244,10 +1244,7 @@ function teamsStillAliveInTournament() {
   const statusEliminated = new Set(model.teams
     .filter((team) => teamMarkedEliminated(team))
     .map((team) => team.teamId));
-  const knockoutStages = ["R32", "R16", "QF", "SF", "FINAL"];
-  const knockoutMatches = model.matches
-    .filter((match) => knockoutStages.includes(normalizedStage(match.stage)))
-    .sort(sortMatchesChronologically);
+  const knockoutMatches = knockoutMatchesForElimination();
   const finalMatchComplete = knockoutMatches.some((match) => normalizedStage(match.stage) === "FINAL" && isFinalMatch(match));
 
   if (finalMatchComplete) return new Set();
@@ -1255,11 +1252,10 @@ function teamsStillAliveInTournament() {
   const alive = new Set(projectedWorldCupBracket(projectedGroupTables())
     .flatMap((match) => [match.home.teamId, match.away.teamId])
     .filter(Boolean));
-  const eliminatedByMatch = new Set();
+  const eliminatedByMatch = completedKnockoutLoserTeamIds();
 
   knockoutMatches.forEach((match) => {
     if (isFinalMatch(match)) {
-      loserTeamIds(match).forEach((teamId) => eliminatedByMatch.add(teamId));
       const winnerId = winningTeamId(match);
       if (winnerId && normalizedStage(match.stage) !== "FINAL") alive.add(winnerId);
       return;
@@ -1272,6 +1268,42 @@ function teamsStillAliveInTournament() {
   statusEliminated.forEach((teamId) => alive.delete(teamId));
   eliminatedByMatch.forEach((teamId) => alive.delete(teamId));
   return alive;
+}
+
+function completedKnockoutLoserTeamIds() {
+  const loserIds = new Set();
+  model.matches
+    .filter((match) => isFinalMatch(match) && isKnockoutEliminationMatch(match))
+    .forEach((match) => loserTeamIds(match).forEach((teamId) => loserIds.add(teamId)));
+  return loserIds;
+}
+
+function isKnockoutEliminationMatch(match) {
+  const knockoutStages = ["R32", "R16", "QF", "SF", "FINAL"];
+  if (knockoutStages.includes(normalizedStage(match.stage))) return true;
+  const firstKnockoutDate = worldCupRoundOf32Schedule[73];
+  const matchDate = localDateKey(match.kickoffUtc);
+  return Boolean(firstKnockoutDate && matchDate && matchDate >= firstKnockoutDate);
+}
+
+function knockoutMatchesForElimination() {
+  const knockoutStages = ["R32", "R16", "QF", "SF", "FINAL"];
+  const matchesById = new Map();
+
+  model.matches
+    .filter((match) => knockoutStages.includes(normalizedStage(match.stage)))
+    .forEach((match) => matchesById.set(match.matchId, match));
+
+  projectedWorldCupBracket(projectedGroupTables())
+    .map(actualMatchForBracketMatch)
+    .filter(Boolean)
+    .forEach((match) => matchesById.set(matchKey(match), { ...match, stage: normalizedStage(match.stage) === "R32" ? match.stage : "R32" }));
+
+  return [...matchesById.values()].sort(sortMatchesChronologically);
+}
+
+function matchKey(match) {
+  return match.matchId || `${match.homeTeamId}-${match.awayTeamId}-${match.kickoffUtc || match.stage || "match"}`;
 }
 
 function teamMarkedEliminated(team) {
