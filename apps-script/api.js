@@ -370,9 +370,13 @@ function isExternalRedCardEvent_(event) {
 }
 
 function normalizeExternalMatchRow_(match) {
+  var stage = normalizeStage_(match.stage);
+  if (stage === WC_STAGE.GROUP && isAfterRoundOf32Start_(match.kickoffUtc)) {
+    stage = WC_STAGE.ROUND_OF_32;
+  }
   return {
     matchId: String(match.matchId || ''),
-    stage: normalizeStage_(match.stage),
+    stage: stage,
     group: match.group || '',
     homeTeamId: match.homeTeamId || '',
     awayTeamId: match.awayTeamId || '',
@@ -385,6 +389,10 @@ function normalizeExternalMatchRow_(match) {
     lastUpdatedUtc: match.lastUpdatedUtc || new Date().toISOString(),
     manualOverride: false
   };
+}
+
+function isAfterRoundOf32Start_(kickoffUtc) {
+  return String(kickoffUtc || '').slice(0, 10) >= '2026-06-28';
 }
 
 function normalizeExternalEventRow_(event) {

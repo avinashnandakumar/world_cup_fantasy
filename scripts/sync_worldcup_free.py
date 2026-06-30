@@ -328,6 +328,9 @@ def normalize_stage(event: dict[str, Any]) -> str:
         return "semifinal"
     if "final" in text:
         return "final"
+    event_date = str(event.get("date") or ((event.get("competitions") or [{}])[0]).get("date") or "")[:10]
+    if event_date >= "2026-06-28":
+        return "round_of_32"
     return "group"
 
 

@@ -2,6 +2,14 @@ function isGroupStage_(stage) {
   return String(stage || '').toLowerCase() === WC_STAGE.GROUP;
 }
 
+function isAfterRoundOf32Start_(kickoffUtc) {
+  return String(kickoffUtc || '').slice(0, 10) >= '2026-06-28';
+}
+
+function isScoredAsGroupStage_(match) {
+  return isGroupStage_(match.stage) && !isAfterRoundOf32Start_(match.kickoffUtc);
+}
+
 function isFinalMatch_(match) {
   return String(match.status || '').toLowerCase() === WC_MATCH_STATUS.FINAL;
 }
@@ -317,7 +325,7 @@ function scoreTeamInMatch_(match, teamId, redCardCount) {
       quantity: 1,
       explanation: 'Match win'
     });
-  } else if (isFinal && isGroupStage_(match.stage) && goalsFor === goalsAgainst) {
+  } else if (isFinal && isScoredAsGroupStage_(match) && goalsFor === goalsAgainst) {
     rows.push({
       category: 'draw',
       points: WC_SCORING_RULES.GROUP_DRAW,

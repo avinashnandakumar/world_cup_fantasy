@@ -1500,10 +1500,14 @@ function bonusRowsForManagerTeam(managerId, teamId) {
   const ledgerRows = settledLedgerRows()
     .filter((row) => row.managerId === managerId && row.teamId === teamId && isEarnedBonusCategory(row.category))
     .sort((a, b) => categorySortValue(a.category) - categorySortValue(b.category));
-  if (ledgerRows.length || hasEarnedBonusLedgerRows() || !groupBonusFallbackReady()) {
+  if (ledgerRows.length) {
     return ledgerRows;
   }
 
+  return projectedBonusRowsForTeam(teamId);
+}
+
+function projectedBonusRowsForTeam(teamId) {
   const projection = projectedBonusByTeam().get(teamId) || {};
   const rows = [];
   if (projection.bonus >= 0.5) {
@@ -1659,18 +1663,22 @@ function earnedBonusForManager(managerId, standing = {}) {
   if (Number.isFinite(Number(standing.bonus))) {
     return Number(standing.bonus);
   }
-  const ledgerBonus = settledCategoryTotalsForManager(managerId).bonuses;
-  if (hasEarnedBonusLedgerRows() || !groupBonusFallbackReady()) {
-    return ledgerBonus;
-  }
-  return projectedBonusForManager(managerId).total;
+  return resolvedBonusForManager(managerId);
 }
 
 function earnedBonusFallbackForManager(managerId, standing = {}) {
-  if (hasEarnedBonusLedgerRows() || Number.isFinite(Number(standing.bonus))) {
+  if (Number.isFinite(Number(standing.bonus))) {
     return 0;
   }
-  return groupBonusFallbackReady() ? projectedBonusForManager(managerId).total : 0;
+  const ledgerBonus = settledCategoryTotalsForManager(managerId).bonuses;
+  return Math.max(0, resolvedBonusForManager(managerId) - ledgerBonus);
+}
+
+function resolvedBonusForManager(managerId) {
+  return model.rosters
+    .filter((roster) => roster.managerId === managerId)
+    .flatMap((roster) => bonusRowsForManagerTeam(managerId, roster.teamId))
+    .reduce((sum, row) => sum + Number(row.points || 0), 0);
 }
 
 function hasEarnedBonusLedgerRows() {
