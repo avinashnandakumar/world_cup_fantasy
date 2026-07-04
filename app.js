@@ -36,7 +36,7 @@ const managerColorPalette = [
   "#121820"
 ];
 
-const worldCupRoundOf32Schedule = {
+const worldCupKnockoutSchedule = {
   73: "2026-06-28",
   74: "2026-06-29",
   75: "2026-06-29",
@@ -52,7 +52,19 @@ const worldCupRoundOf32Schedule = {
   85: "2026-07-02",
   86: "2026-07-03",
   87: "2026-07-03",
-  88: "2026-07-03"
+  88: "2026-07-03",
+  89: "2026-07-04",
+  90: "2026-07-04",
+  91: "2026-07-05",
+  92: "2026-07-05",
+  93: "2026-07-06",
+  94: "2026-07-06",
+  95: "2026-07-07",
+  96: "2026-07-07"
+};
+
+const condensedBracketRoundPairings = {
+  R16: [[89, 73, 75], [90, 74, 77], [91, 76, 78], [92, 79, 80], [93, 83, 84], [94, 81, 82], [95, 86, 88], [96, 85, 87]]
 };
 
 const countryFlags = {
@@ -125,6 +137,7 @@ const fallback = {
 
 let model = fallback;
 let selectedManagerId = null;
+let selectedCondensedBracketRound = "R16";
 let typingIndex = 0;
 let charIndex = 0;
 let typingDeleting = false;
@@ -138,6 +151,7 @@ init();
 async function init() {
   setupRefreshButton();
   setupMatchBreakdownModal();
+  setupWorldCupBracketTabs();
   model = await loadModel();
   selectedManagerId = model.standings[0]?.managerId || model.managers[0]?.managerId;
   render();
@@ -180,6 +194,15 @@ function setupMatchBreakdownModal() {
     if (!card) return;
     event.preventDefault();
     openMatchBreakdown(card.dataset.matchId);
+  });
+}
+
+function setupWorldCupBracketTabs() {
+  document.addEventListener("click", (event) => {
+    const tab = event.target.closest("[data-bracket-round]");
+    if (!tab) return;
+    selectedCondensedBracketRound = tab.dataset.bracketRound === "R32" ? "R32" : "R16";
+    renderWorldCupBracket();
   });
 }
 
@@ -567,9 +590,10 @@ function renderWorldCupBracket() {
   const node = $("world-cup-bracket-grid");
   if (!node) return;
 
-  const round = activeCondensedBracketRound();
+  const round = condensedBracketRound(selectedCondensedBracketRound);
   const title = $("bracket-title");
   if (title) title.textContent = round.title;
+  updateWorldCupBracketTabs(round.stage);
 
   const bracket = round.matches;
   const leftSide = bracket.slice(0, Math.ceil(bracket.length / 2));
@@ -584,6 +608,14 @@ function renderWorldCupBracket() {
       ${rightSide.map((match) => renderWorldCupBracketMatch(match)).join("")}
     </div>
   `;
+}
+
+function updateWorldCupBracketTabs(stage) {
+  document.querySelectorAll("[data-bracket-round]").forEach((tab) => {
+    const isActive = tab.dataset.bracketRound === stage;
+    tab.classList.toggle("is-active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+  });
 }
 
 function renderWorldCupBracketMatch(match) {
@@ -609,17 +641,13 @@ function renderWorldCupBracketSide(side, match) {
   `;
 }
 
-function activeCondensedBracketRound() {
-  const stage = activeKnockoutStage();
-  const actualMatches = model.matches
-    .filter((match) => normalizedStage(match.stage) === stage)
-    .sort(sortMatchesChronologically);
-
-  if (stage !== "R32" && actualMatches.length) {
+function condensedBracketRound(stage) {
+  const normalized = normalizedStage(stage) === "R32" ? "R32" : "R16";
+  if (normalized === "R16") {
     return {
-      stage,
-      title: knockoutStageLabel(stage),
-      matches: actualMatches.map((match, index) => bracketMatchFromActualMatch(match, index))
+      stage: "R16",
+      title: knockoutStageLabel("R16"),
+      matches: projectedRoundOf16Bracket()
     };
   }
 
@@ -633,18 +661,59 @@ function activeCondensedBracketRound() {
   };
 }
 
-function activeKnockoutStage() {
-  const stageOrder = ["R32", "R16", "QF", "SF", "FINAL"];
-  const knockoutMatches = model.matches.filter((match) => stageOrder.includes(normalizedStage(match.stage)));
-  const unfinished = knockoutMatches
-    .filter((match) => !isFinalMatch(match))
-    .sort((a, b) => stageOrder.indexOf(normalizedStage(a.stage)) - stageOrder.indexOf(normalizedStage(b.stage)) || sortMatchesChronologically(a, b));
-  if (unfinished.length) return normalizedStage(unfinished[0].stage);
+function projectedRoundOf16Bracket() {
+  const roundOf32Matches = new Map(projectedWorldCupBracket(projectedGroupTables()).map((match) => [
+    match.matchNumber,
+    {
+      ...match,
+      actualMatch: actualMatchForBracketMatch(match)
+    }
+  ]));
 
-  const finished = knockoutMatches
-    .filter((match) => isFinalMatch(match))
-    .sort((a, b) => stageOrder.indexOf(normalizedStage(b.stage)) - stageOrder.indexOf(normalizedStage(a.stage)) || sortMatchesChronologically(b, a));
-  return finished.length ? normalizedStage(finished[0].stage) : "R32";
+  return condensedBracketRoundPairings.R16.map(([matchNumber, homeSource, awaySource], index) => {
+    const actualMatch = actualMatchForStageAndNumber("R16", matchNumber);
+    if (actualMatch?.homeTeamId && actualMatch?.awayTeamId) return bracketMatchFromActualMatch(actualMatch, index);
+
+    const home = winnerSideForCondensedBracket(roundOf32Matches.get(homeSource), homeSource);
+    const away = winnerSideForCondensedBracket(roundOf32Matches.get(awaySource), awaySource);
+    return {
+      matchNumber,
+      stage: "R16",
+      actualMatch: actualMatchForDerivedBracketMatch("R16", matchNumber, home.teamId, away.teamId),
+      home,
+      away
+    };
+  });
+}
+
+function winnerSideForCondensedBracket(sourceMatch, sourceMatchNumber) {
+  const actualMatch = sourceMatch?.actualMatch || (sourceMatch ? actualMatchForBracketMatch(sourceMatch) : null);
+  const winnerId = actualMatch ? winningTeamId(actualMatch) : "";
+  if (winnerId) {
+    return {
+      ...bracketSideFromTeam(winnerId),
+      seed: `W${sourceMatchNumber}`
+    };
+  }
+  return {
+    seed: `W${sourceMatchNumber}`,
+    teamId: "",
+    country: `Winner ${sourceMatchNumber}`
+  };
+}
+
+function actualMatchForStageAndNumber(stage, matchNumber) {
+  return model.matches.find((match) => normalizedStage(match.stage) === stage && bracketMatchNumbersMatch(match, matchNumber)) || null;
+}
+
+function actualMatchForDerivedBracketMatch(stage, matchNumber, homeTeamId, awayTeamId) {
+  return model.matches.find((match) => {
+    if (normalizedStage(match.stage) !== stage) return false;
+    if (bracketMatchNumbersMatch(match, matchNumber)) return true;
+    const sameDirection = match.homeTeamId === homeTeamId && match.awayTeamId === awayTeamId;
+    const swapped = match.homeTeamId === awayTeamId && match.awayTeamId === homeTeamId;
+    return Boolean(homeTeamId && awayTeamId && (sameDirection || swapped));
+  }) || null;
 }
 
 function bracketMatchFromActualMatch(match, index) {
@@ -694,7 +763,7 @@ function bracketTeamsMatch(match, bracketMatch) {
 }
 
 function matchDateMatchesBracketSlot(match, matchNumber) {
-  const dateKey = worldCupRoundOf32Schedule[matchNumber];
+  const dateKey = worldCupKnockoutSchedule[matchNumber];
   if (!dateKey || !match.kickoffUtc) return false;
   return localDateKey(match.kickoffUtc) === dateKey;
 }
@@ -749,7 +818,7 @@ function worldCupBracketManagerLabel(teamId) {
 
 function worldCupBracketScheduleLabel(matchNumber, match = null) {
   if (match?.kickoffUtc) return formatMatchDate(match);
-  const dateKey = worldCupRoundOf32Schedule[matchNumber];
+  const dateKey = worldCupKnockoutSchedule[matchNumber];
   if (!dateKey) return "TBD";
   const [year, month, day] = dateKey.split("-").map(Number);
   const matchDate = new Date(year, month - 1, day);
@@ -1281,7 +1350,7 @@ function completedKnockoutLoserTeamIds() {
 function isKnockoutEliminationMatch(match) {
   const knockoutStages = ["R32", "R16", "QF", "SF", "FINAL"];
   if (knockoutStages.includes(normalizedStage(match.stage))) return true;
-  const firstKnockoutDate = worldCupRoundOf32Schedule[73];
+  const firstKnockoutDate = worldCupKnockoutSchedule[73];
   const matchDate = localDateKey(match.kickoffUtc);
   return Boolean(firstKnockoutDate && matchDate && matchDate >= firstKnockoutDate);
 }

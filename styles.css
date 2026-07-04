@@ -1920,6 +1920,49 @@ body.modal-open {
   font-weight: 800;
 }
 
+.bracket-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.bracket-round-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.16rem;
+  padding: 0.18rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.bracket-round-tab {
+  min-height: 2rem;
+  padding: 0 0.72rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.bracket-round-tab.is-active {
+  background: #121820;
+  color: white;
+  box-shadow: 0 7px 16px rgba(16, 20, 24, 0.16);
+}
+
+.bracket-round-tab:focus-visible {
+  outline: 3px solid rgba(24, 165, 102, 0.28);
+  outline-offset: 2px;
+}
+
 .world-cup-bracket-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 1.8rem minmax(0, 1fr);
@@ -2799,6 +2842,10 @@ body.modal-open {
     grid-template-columns: 1fr;
   }
 
+  .bracket-actions {
+    justify-content: flex-start;
+  }
+
   .world-cup-bracket-lane {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3297,6 +3344,15 @@ body.modal-open {
 
   .world-cup-bracket-lane {
     grid-template-columns: 1fr;
+  }
+
+  .bracket-round-tabs {
+    width: 100%;
+  }
+
+  .bracket-round-tab {
+    flex: 1 1 0;
+    padding: 0 0.42rem;
   }
 
   .world-cup-bracket-match {
