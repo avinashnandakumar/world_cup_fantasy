@@ -455,7 +455,7 @@ function renderFlags() {
 }
 
 function renderCountryBreakdown() {
-  const managerRows = rosterManagersInOrder();
+  const managerRows = standingsForMainTable();
   $("country-breakdown").innerHTML = managerRows.map(({ managerId, displayName, totalPoints }) => {
     const manager = managerById(managerId);
     const gamesPlayed = gamesPlayedForManager(managerId);
