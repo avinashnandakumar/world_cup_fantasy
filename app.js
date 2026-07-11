@@ -60,11 +60,16 @@ const worldCupKnockoutSchedule = {
   93: "2026-07-06",
   94: "2026-07-06",
   95: "2026-07-07",
-  96: "2026-07-07"
+  96: "2026-07-07",
+  97: "2026-07-09",
+  98: "2026-07-10",
+  99: "2026-07-11",
+  100: "2026-07-11"
 };
 
 const condensedBracketRoundPairings = {
-  R16: [[89, 73, 75], [90, 74, 77], [91, 76, 78], [92, 79, 80], [93, 83, 84], [94, 81, 82], [95, 86, 88], [96, 85, 87]]
+  R16: [[89, 73, 75], [90, 74, 77], [91, 76, 78], [92, 79, 80], [93, 83, 84], [94, 81, 82], [95, 86, 88], [96, 85, 87]],
+  QF: [[97, 89, 90], [98, 93, 94], [99, 91, 92], [100, 95, 96]]
 };
 
 const countryFlags = {
@@ -137,7 +142,7 @@ const fallback = {
 
 let model = fallback;
 let selectedManagerId = null;
-let selectedCondensedBracketRound = "R16";
+let selectedCondensedBracketRound = "QF";
 let typingIndex = 0;
 let charIndex = 0;
 let typingDeleting = false;
@@ -201,7 +206,9 @@ function setupWorldCupBracketTabs() {
   document.addEventListener("click", (event) => {
     const tab = event.target.closest("[data-bracket-round]");
     if (!tab) return;
-    selectedCondensedBracketRound = tab.dataset.bracketRound === "R32" ? "R32" : "R16";
+    selectedCondensedBracketRound = ["QF", "R16", "R32"].includes(tab.dataset.bracketRound)
+      ? tab.dataset.bracketRound
+      : "QF";
     renderWorldCupBracket();
   });
 }
@@ -642,12 +649,12 @@ function renderWorldCupBracketSide(side, match) {
 }
 
 function condensedBracketRound(stage) {
-  const normalized = normalizedStage(stage) === "R32" ? "R32" : "R16";
-  if (normalized === "R16") {
+  const normalized = ["QF", "R16", "R32"].includes(normalizedStage(stage)) ? normalizedStage(stage) : "QF";
+  if (normalized !== "R32") {
     return {
-      stage: "R16",
-      title: knockoutStageLabel("R16"),
-      matches: projectedRoundOf16Bracket()
+      stage: normalized,
+      title: knockoutStageLabel(normalized),
+      matches: projectedCondensedBracketRound(normalized)
     };
   }
 
@@ -661,25 +668,34 @@ function condensedBracketRound(stage) {
   };
 }
 
-function projectedRoundOf16Bracket() {
-  const roundOf32Matches = new Map(projectedWorldCupBracket(projectedGroupTables()).map((match) => [
-    match.matchNumber,
-    {
+function projectedCondensedBracketRound(stage) {
+  const normalized = normalizedStage(stage);
+  const sourceMatches = normalized === "QF"
+    ? projectedCondensedBracketRound("R16")
+    : projectedWorldCupBracket(projectedGroupTables()).map((match) => ({
       ...match,
       actualMatch: actualMatchForBracketMatch(match)
+    }));
+  const sourceMatchesByNumber = new Map(sourceMatches.map((match) => [match.matchNumber, match]));
+
+  return (condensedBracketRoundPairings[normalized] || []).map(([matchNumber, homeSource, awaySource], index) => {
+    const home = winnerSideForCondensedBracket(sourceMatchesByNumber.get(homeSource), homeSource);
+    const away = winnerSideForCondensedBracket(sourceMatchesByNumber.get(awaySource), awaySource);
+    const actualMatch = actualMatchForStageAndNumber(normalized, matchNumber)
+      || actualMatchForDerivedBracketMatch(normalized, matchNumber, home.teamId, away.teamId);
+
+    if (actualMatch?.homeTeamId && actualMatch?.awayTeamId) {
+      return {
+        ...bracketMatchFromActualMatch(actualMatch, index),
+        matchNumber,
+        stage: normalized
+      };
     }
-  ]));
 
-  return condensedBracketRoundPairings.R16.map(([matchNumber, homeSource, awaySource], index) => {
-    const actualMatch = actualMatchForStageAndNumber("R16", matchNumber);
-    if (actualMatch?.homeTeamId && actualMatch?.awayTeamId) return bracketMatchFromActualMatch(actualMatch, index);
-
-    const home = winnerSideForCondensedBracket(roundOf32Matches.get(homeSource), homeSource);
-    const away = winnerSideForCondensedBracket(roundOf32Matches.get(awaySource), awaySource);
     return {
       matchNumber,
-      stage: "R16",
-      actualMatch: actualMatchForDerivedBracketMatch("R16", matchNumber, home.teamId, away.teamId),
+      stage: normalized,
+      actualMatch,
       home,
       away
     };
@@ -687,7 +703,7 @@ function projectedRoundOf16Bracket() {
 }
 
 function winnerSideForCondensedBracket(sourceMatch, sourceMatchNumber) {
-  const actualMatch = sourceMatch?.actualMatch || (sourceMatch ? actualMatchForBracketMatch(sourceMatch) : null);
+  const actualMatch = actualMatchForBracketSource(sourceMatch, sourceMatchNumber);
   const winnerId = actualMatch ? winningTeamId(actualMatch) : "";
   if (winnerId) {
     return {
@@ -707,13 +723,38 @@ function actualMatchForStageAndNumber(stage, matchNumber) {
 }
 
 function actualMatchForDerivedBracketMatch(stage, matchNumber, homeTeamId, awayTeamId) {
-  return model.matches.find((match) => {
-    if (normalizedStage(match.stage) !== stage) return false;
-    if (bracketMatchNumbersMatch(match, matchNumber)) return true;
-    const sameDirection = match.homeTeamId === homeTeamId && match.awayTeamId === awayTeamId;
-    const swapped = match.homeTeamId === awayTeamId && match.awayTeamId === homeTeamId;
-    return Boolean(homeTeamId && awayTeamId && (sameDirection || swapped));
-  }) || null;
+  const candidates = model.matches.filter((match) => {
+    const stageMatches = normalizedStage(match.stage) === stage;
+    const slotMatches = matchDateMatchesBracketSlot(match, matchNumber);
+    return stageMatches || slotMatches;
+  });
+
+  return candidates.find((match) => bracketMatchNumbersMatch(match, matchNumber))
+    || candidates.find((match) => {
+      if (!homeTeamId || !awayTeamId) return false;
+      const sameDirection = match.homeTeamId === homeTeamId && match.awayTeamId === awayTeamId;
+      const swapped = match.homeTeamId === awayTeamId && match.awayTeamId === homeTeamId;
+      return sameDirection || swapped;
+    })
+    || uniquePartialTeamMatch(candidates, [homeTeamId, awayTeamId])
+    || (candidates.length === 1 ? candidates[0] : null);
+}
+
+function uniquePartialTeamMatch(candidates, teamIds) {
+  const knownTeamIds = teamIds.filter(Boolean);
+  if (!knownTeamIds.length) return null;
+  const matches = candidates.filter((match) => {
+    const matchTeamIds = [match.homeTeamId, match.awayTeamId].filter(Boolean);
+    return knownTeamIds.every((teamId) => matchTeamIds.includes(teamId));
+  });
+  return matches.length === 1 ? matches[0] : null;
+}
+
+function actualMatchForBracketSource(sourceMatch, sourceMatchNumber) {
+  if (!sourceMatch) return actualMatchForDerivedBracketMatch("", sourceMatchNumber, "", "");
+  return sourceMatch.actualMatch
+    || actualMatchForBracketMatch(sourceMatch)
+    || actualMatchForDerivedBracketMatch(sourceMatch.stage || "", sourceMatchNumber, sourceMatch.home.teamId, sourceMatch.away.teamId);
 }
 
 function bracketMatchFromActualMatch(match, index) {
