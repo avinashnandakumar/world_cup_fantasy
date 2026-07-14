@@ -64,12 +64,24 @@ const worldCupKnockoutSchedule = {
   97: "2026-07-09",
   98: "2026-07-10",
   99: "2026-07-11",
-  100: "2026-07-11"
+  100: "2026-07-11",
+  101: "2026-07-14",
+  102: "2026-07-15",
+  104: "2026-07-19"
 };
 
 const condensedBracketRoundPairings = {
   R16: [[89, 73, 75], [90, 74, 77], [91, 76, 78], [92, 79, 80], [93, 83, 84], [94, 81, 82], [95, 86, 88], [96, 85, 87]],
-  QF: [[97, 89, 90], [98, 93, 94], [99, 91, 92], [100, 95, 96]]
+  QF: [[97, 89, 90], [98, 93, 94], [99, 91, 92], [100, 95, 96]],
+  SF: [[101, 97, 98], [102, 99, 100]],
+  FINAL: [[104, 101, 102]]
+};
+
+const condensedBracketSourceStages = {
+  R16: "R32",
+  QF: "R16",
+  SF: "QF",
+  FINAL: "SF"
 };
 
 const countryFlags = {
@@ -142,7 +154,7 @@ const fallback = {
 
 let model = fallback;
 let selectedManagerId = null;
-let selectedCondensedBracketRound = "QF";
+let selectedCondensedBracketRound = "SF";
 let typingIndex = 0;
 let charIndex = 0;
 let typingDeleting = false;
@@ -206,9 +218,9 @@ function setupWorldCupBracketTabs() {
   document.addEventListener("click", (event) => {
     const tab = event.target.closest("[data-bracket-round]");
     if (!tab) return;
-    selectedCondensedBracketRound = ["QF", "R16", "R32"].includes(tab.dataset.bracketRound)
+    selectedCondensedBracketRound = ["FINAL", "SF", "QF", "R16", "R32"].includes(tab.dataset.bracketRound)
       ? tab.dataset.bracketRound
-      : "QF";
+      : "SF";
     renderWorldCupBracket();
   });
 }
@@ -649,7 +661,7 @@ function renderWorldCupBracketSide(side, match) {
 }
 
 function condensedBracketRound(stage) {
-  const normalized = ["QF", "R16", "R32"].includes(normalizedStage(stage)) ? normalizedStage(stage) : "QF";
+  const normalized = ["FINAL", "SF", "QF", "R16", "R32"].includes(normalizedStage(stage)) ? normalizedStage(stage) : "SF";
   if (normalized !== "R32") {
     return {
       stage: normalized,
@@ -670,8 +682,9 @@ function condensedBracketRound(stage) {
 
 function projectedCondensedBracketRound(stage) {
   const normalized = normalizedStage(stage);
-  const sourceMatches = normalized === "QF"
-    ? projectedCondensedBracketRound("R16")
+  const sourceStage = condensedBracketSourceStages[normalized];
+  const sourceMatches = sourceStage && sourceStage !== "R32"
+    ? projectedCondensedBracketRound(sourceStage)
     : projectedWorldCupBracket(projectedGroupTables()).map((match) => ({
       ...match,
       actualMatch: actualMatchForBracketMatch(match)
