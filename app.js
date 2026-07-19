@@ -408,7 +408,7 @@ function renderStandings() {
     const movement = rankMovement[standing.managerId];
 
     return `
-      <tr style="--manager-color:${managerColor(manager, standing.managerId)}">
+      <tr class="${standing.rank === 1 ? "standings-leader-row" : ""}" style="--manager-color:${managerColor(manager, standing.managerId)}">
         <td data-label="Rank"><span class="rank-cell">${standing.rank}</span></td>
         <td>
           <span class="player-cell">
