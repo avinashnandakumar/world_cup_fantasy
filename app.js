@@ -374,7 +374,14 @@ function render() {
 }
 
 function renderHero() {
-  $("page-title").textContent = displayLeagueName();
+  const summary = championshipSummary();
+  const title = $("page-title");
+  const eyebrow = document.querySelector(".hero-copy .eyebrow");
+  title.textContent = summary ? summary.title : displayLeagueName();
+  title.classList.toggle("winner-title", Boolean(summary));
+  if (eyebrow) {
+    eyebrow.textContent = summary ? summary.eyebrow : "World Cup Fantasy";
+  }
 }
 
 function displayLeagueName() {
@@ -396,6 +403,7 @@ function renderUpdated() {
 function renderStandings() {
   const sorted = standingsForMainTable();
   const rankMovement = rankMovementByManager();
+  const leaderTotal = sorted[0]?.totalPoints ?? 0;
   $("standings-body").innerHTML = sorted.map((standing) => {
     const manager = managerById(standing.managerId);
     const totals = settledCategoryTotalsForManager(standing.managerId);
@@ -406,9 +414,10 @@ function renderStandings() {
     const projectionLine = projectedTotal === null ? "" : `
           <span class="total-points-projected">Proj: ${fmt(projectedTotal)}</span>`;
     const movement = rankMovement[standing.managerId];
+    const isLeader = Math.abs(Number(standing.totalPoints || 0) - leaderTotal) < 0.001;
 
     return `
-      <tr class="${standing.rank === 1 ? "standings-leader-row" : ""}" style="--manager-color:${managerColor(manager, standing.managerId)}">
+      <tr class="${isLeader ? "standings-leader-row" : ""}" style="--manager-color:${managerColor(manager, standing.managerId)}">
         <td data-label="Rank"><span class="rank-cell">${standing.rank}</span></td>
         <td>
           <span class="player-cell">
@@ -1191,7 +1200,17 @@ function typingPhrases() {
 }
 
 function tableFacts() {
-  const sorted = sortedStandings();
+  const championship = championshipSummary();
+  if (championship) {
+    return [
+      championship.line,
+      `Final score: ${championship.finalScore}`,
+      `${championship.totalLabel} at the top of the table`,
+      championship.winners.length > 1 ? "No tiebreaker needed: shared glory" : "The trophy has a fantasy home"
+    ];
+  }
+
+  const sorted = standingsForMainTable();
   const leader = sorted[0];
   const second = sorted[1];
   const gap = leader && second ? fmt(leader.totalPoints - second.totalPoints) : "0";
@@ -1208,6 +1227,43 @@ function tableFacts() {
 
 function sortedStandings() {
   return [...model.standings].sort((a, b) => Number(a.rank) - Number(b.rank));
+}
+
+function championshipSummary() {
+  const finalMatch = tournamentFinalMatch();
+  if (!finalMatch || !isFinalMatch(finalMatch)) return null;
+
+  const standings = standingsForMainTable();
+  const topTotal = Number(standings[0]?.totalPoints || 0);
+  const winners = standings.filter((standing) => Math.abs(Number(standing.totalPoints || 0) - topTotal) < 0.001);
+  if (!winners.length) return null;
+
+  const winnerNames = winners.map((winner) => winner.displayName || winner.managerId);
+  const winnerLabel = formatNameList(winnerNames);
+  const finalWinner = teamById(winningTeamId(finalMatch))?.name || winningTeamId(finalMatch) || "the champion";
+  const finalScore = `${teamById(finalMatch.homeTeamId)?.name || finalMatch.homeTeamId} ${matchHomeGoals(finalMatch)}-${matchAwayGoals(finalMatch)} ${teamById(finalMatch.awayTeamId)?.name || finalMatch.awayTeamId}`;
+  const totalLabel = `${fmt(topTotal)} point${topTotal === 1 ? "" : "s"}`;
+
+  return {
+    winners,
+    title: winners.length > 1 ? `${winnerLabel} Tie for the Title` : `${winnerLabel} Wins the League`,
+    eyebrow: winners.length > 1 ? "World Cup Fantasy Co-Winners" : "World Cup Fantasy Winner",
+    line: winners.length > 1 ? `${winnerLabel} share the league crown` : `${winnerLabel} takes the league crown`,
+    finalScore: `${finalScore}; ${finalWinner} won the World Cup`,
+    totalLabel
+  };
+}
+
+function tournamentFinalMatch() {
+  const explicitFinal = model.matches.find((match) => normalizedStage(match.stage) === "FINAL");
+  if (explicitFinal) return explicitFinal;
+  return actualMatchForDerivedBracketMatch("FINAL", 104, "", "");
+}
+
+function formatNameList(names) {
+  if (names.length <= 1) return names[0] || "The winner";
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
 }
 
 function rosterManagersInOrder() {

@@ -242,6 +242,11 @@ h1 {
   font-weight: 800;
 }
 
+.winner-title {
+  color: #f2c94c;
+  text-shadow: 0 3px 0 rgba(74, 45, 0, 0.34), 0 14px 36px rgba(0, 0, 0, 0.28);
+}
+
 #typing-text::after {
   content: "";
   display: inline-block;
@@ -412,12 +417,12 @@ h1 {
 }
 
 .fantasy-table tbody tr.standings-leader-row {
-  background: #fff200;
-  box-shadow: inset 0 0 0 2px rgba(184, 134, 11, 0.34);
+  background: #d4af37;
+  box-shadow: inset 0 0 0 2px rgba(122, 79, 0, 0.34);
 }
 
 .fantasy-table tbody tr.standings-leader-row:hover {
-  background: #ffea00;
+  background: #c99a1f;
 }
 
 .standings-leader-row .rank-cell {
